@@ -1,6 +1,6 @@
 import { loadLibrary } from "./data.js";
 import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITLE } from "./layout.js";
-import { ESTATE_URL } from "./config.js";
+import { ESTATE_URL, SUPABASE_URL, SUPABASE_KEY } from "./config.js";
 
 const SHOW_OBJECTS = true;
 
@@ -25,7 +25,7 @@ const COVER_RATIO = 0.66;
 const LIFT = 52; // headroom above each bay so a pulled book isn't clipped
 const GAP = 1.5;
 
-const state = { bays: [], zoom: null, detail: null, unsorted: [] };
+const state = { bays: [], zoom: null, detail: null, unsorted: [], books: [], recs: [], byYear: false, lightsOff: false, waterings: 0, tsundokuFound: false };
 
 // ---------- sorting books into bays ----------
 function genreKey(g) {
@@ -34,7 +34,7 @@ function genreKey(g) {
 }
 
 function assignBooks(books, recs) {
-  state.bays = BAYS.map((b) => ({ ...b, books: [] }));
+  state.bays = BAYS.map((b) => ({ ...b, home: b.genre, books: [] }));
   const byGenre = new Map(state.bays.map((b) => [b.genre.toLowerCase(), b]));
   state.unsorted = [];
   for (const book of books) {
@@ -91,6 +91,8 @@ function applyBookVars(node, b, k) {
 function bookEl(b, bay, index) {
   const btn = el("button", "book");
   btn.type = "button";
+  btn._book = b;
+  btn.style.setProperty("--i", index);
   btn.setAttribute("aria-label", `${b.title} by ${b.author}`);
   applyBookVars(btn, b, BOOK_K);
   const body = el("span", "b3d");
@@ -165,7 +167,7 @@ function showBayCard(anchor, bay) {
   card.append(el("p", "hc-title", bay.genre));
   const n = bay.books.length;
   card.append(el("p", "hc-bits", `${n} ${n === 1 ? "book" : "books"} · click to look closer`));
-  placeCard(anchor, true);
+  placeCard(bay.plateEl || anchor);
 }
 function hideCard() {
   clearTimeout(cardTimer);
@@ -212,6 +214,11 @@ function buildRoom() {
     plate.style.top = `${bay.board}px`;
     plate.setAttribute("aria-label", `${bay.genre}: look closer`);
     plate.addEventListener("click", () => openZoom(bay));
+    if (canHover) {
+      plate.addEventListener("pointerenter", () => showBayCard(box, bay));
+      plate.addEventListener("pointerleave", hideCard);
+    }
+    bay.plateEl = plate;
     layer.append(plate);
 
     fillBay(bay, false);
@@ -414,6 +421,7 @@ function closeZoom(quick) {
   if (!bay) return;
   state.zoom = null;
   hideCard();
+  closeTsundoku(bay);
   sizeBayBox(bay);
   bay.el.classList.remove("zoomed", "fade-l", "fade-r");
   fillBay(bay, false);
@@ -551,6 +559,7 @@ function renderPanel(b, list, index, t) {
   let label = "";
   if (b.kind === "rec") label = `Recommended by ${b.recommender}`;
   else if (b.status === "reading") label = "Currently reading";
+  else if (b.status === "unfinished") label = "Tsundoku · still in the pile";
   else if (b.finished) label = `Finished ${fmtDate(b.finished)}`;
   if (label) panel.append(el("p", "p-label", label));
   panel.append(el("h2", "p-title", b.title));
@@ -712,38 +721,579 @@ function buildObjects() {
   const layer = $("objects");
   layer.innerHTML = "";
   const reading = state.books.filter((b) => b.status === "reading");
-  const shelved = state.bays.filter((b) => b.genre !== "Recommended").flatMap((b) => b.books);
 
-  layer.append(makeObject(OBJECTS.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off")));
-  layer.append(makeObject(OBJECTS.glasses, "For the fine print."));
-  layer.append(makeObject(OBJECTS.hourglass, "Time in a bottle."));
+  layer.append(makeObject(OBJECTS.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off"), () => toggleLights()));
+  layer.append(makeObject(OBJECTS.glasses, "For the fine print.", () => openReader()));
+  layer.append(makeObject(OBJECTS.hourglass, "Time in a bottle.", (node) => flipTime(node)));
   layer.append(makeObject(OBJECTS.book,
     () => (reading.length ? `Currently reading: ${reading.map((b) => b.title).join(" · ")}` : "Currently reading: nothing open right now."),
     (node) => { if (reading.length) openDetail(node, reading[0], reading, 0, true); }));
   layer.append(makeObject(OBJECTS.pen, "The Key to the Estate",
-    () => { if (ESTATE_URL) window.open(ESTATE_URL, "_blank", "noopener"); }));
-  layer.append(makeObject(OBJECTS.deck, "Pick a card, any card.",
     (node) => {
-      if (!shelved.length) return;
-      const i = Math.floor(Math.random() * shelved.length);
-      openDetail(node, shelved[i], shelved, i, true);
+      if (ESTATE_URL) window.open(ESTATE_URL, "_blank", "noopener");
+      else flashLabel(node, "The Estate opens soon.");
     }));
-  layer.append(makeObject(OBJECTS.plane, "Is my shelf missing a gem?"));
-
-  // the plant lives inside the Self-Help bay so it zooms with it
-  const sh = state.bays.find((b) => b.genre === OBJECTS.plant.bay);
-  if (sh) {
-    const spec = { ...OBJECTS.plant, x: sh.w - OBJECTS.plant.inset, base: sh.base - sh.top + LIFT };
-    sh.el.append(makeObject(spec, "Looks thirsty."));
-  }
+  layer.append(makeObject(OBJECTS.deck, "Pick a card, any card.", (node) => {
+    const shelved = shelvedBooks();
+    if (!shelved.length) return;
+    const i = Math.floor(Math.random() * shelved.length);
+    openDetail(node, shelved[i], shelved, i, true);
+  }));
+  state.planeEl = makeObject(OBJECTS.plane, "Is my shelf missing a gem?", (node) => openRecForm(node));
+  layer.append(state.planeEl);
+  addPlant();
   const glow = $("lampGlow");
-  // the lamp's light: the shade sits over the left of the image, the bulb about a third of the way down
   const L = OBJECTS.lamp;
   Object.assign(glow.style, { left: `${L.x - L.w / 2 + L.w * 0.3 - 260}px`, top: `${L.base - L.h + L.h * 0.34 - 170}px` });
 }
 
+function shelvedBooks() {
+  return state.books.filter((b) => b.status !== "unfinished");
+}
+
+function flashLabel(node, text, ms = 2600) {
+  labelFor(node, text);
+  clearTimeout(flashLabel.t);
+  flashLabel.t = setTimeout(hideCard, ms);
+}
+
+// the plant lives inside the Self-Help bay so it zooms with it
+function addPlant() {
+  const sh = state.bays.find((b) => b.home === OBJECTS.plant.bay);
+  if (!sh) return;
+  const spec = { ...OBJECTS.plant, x: sh.w - OBJECTS.plant.inset, base: sh.base - sh.top + LIFT };
+  const node = makeObject(spec, "Looks thirsty.", (n) => waterPlant(n, sh));
+  sh.el.append(node);
+  state.plantEl = node;
+}
+
+// =====================================================================
+// LAMP: lights off, the books become stars
+// =====================================================================
+const STAR_COLORS = { "-2": "#86b4ff", "-1": "#bcd4ff", "0": "#f6efe2", "1": "#ffd08c", "2": "#ff8f5e" };
+
+function seeded(str) {
+  let h = 2166136261;
+  for (const c of String(str)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; };
+}
+
+function toggleLights() {
+  if (state.lightsOff) return lightsOn();
+  if (state.zoom) closeZoom();
+  hideCard();
+  state.lightsOff = true;
+  const night = $("night");
+  night.innerHTML = "";
+  const vw = innerWidth, vh = innerHeight;
+
+  const stars = [...document.querySelectorAll("#bays .book")]
+    .filter((btn) => btn._book && btn._book.kind === "book")
+    .map((btn) => {
+      const r = btn.getBoundingClientRect();
+      const rnd = seeded(btn._book.id);
+      return {
+        b: btn._book,
+        x0: r.left + r.width / 2, y0: r.top + r.height * 0.45,
+        x: r.left + r.width / 2 + (rnd() - 0.5) * 40,
+        y: r.top + r.height * 0.45 - 30 - rnd() * 70,
+        size: 3 + rnd() * 4,
+        delay: rnd() * 700,
+      };
+    });
+
+  const dark = el("div", "night-dark");
+  night.append(dark);
+
+  // constellation lines between books that share themes
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "night-lines");
+  svg.setAttribute("viewBox", `0 0 ${vw} ${vh}`);
+  const themesOf = (b) => new Set((b.themes || []).map((t) => String(t).toLowerCase().trim()).filter(Boolean));
+  const sets = stars.map((s) => themesOf(s.b));
+  const drawn = new Set();
+  stars.forEach((s, i) => {
+    const links = [];
+    stars.forEach((t, j) => {
+      if (i === j) return;
+      let shared = 0;
+      for (const th of sets[i]) if (sets[j].has(th)) shared++;
+      if (shared) links.push({ j, shared, d: Math.hypot(s.x - t.x, s.y - t.y) });
+    });
+    links.sort((a, b) => b.shared - a.shared || a.d - b.d);
+    links.slice(0, 2).forEach(({ j, shared }) => {
+      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+      if (drawn.has(key)) return;
+      drawn.add(key);
+      const t = stars[j];
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", s.x); line.setAttribute("y1", s.y);
+      line.setAttribute("x2", t.x); line.setAttribute("y2", t.y);
+      line.setAttribute("stroke-width", shared >= 2 ? 1.1 : 0.6);
+      line.style.opacity = shared >= 2 ? 0.55 : 0.28;
+      const len = Math.hypot(s.x - t.x, s.y - t.y);
+      line.style.strokeDasharray = len;
+      line.style.strokeDashoffset = len;
+      line.style.transitionDelay = `${1700 + Math.random() * 900}ms`;
+      svg.append(line);
+    });
+  });
+  night.append(svg);
+
+  const list = stars.map((s) => s.b);
+  stars.forEach((s, i) => {
+    const star = el("button", "star");
+    star.type = "button";
+    star.setAttribute("aria-label", `${s.b.title} by ${s.b.author}`);
+    const em = Math.max(-2, Math.min(2, Math.round(Number(s.b.emotion) || 0)));
+    star.style.setProperty("--c", STAR_COLORS[em]);
+    star.style.setProperty("--s", `${s.size}px`);
+    star.style.left = `${s.x0}px`;
+    star.style.top = `${s.y0}px`;
+    star.style.transitionDelay = `${900 + s.delay}ms`;
+    star.style.animationDelay = `${(s.delay * 7) % 3000}ms`;
+    star.dataset.x = s.x; star.dataset.y = s.y; star.dataset.x0 = s.x0; star.dataset.y0 = s.y0;
+    star.addEventListener("pointerenter", () => labelFor(star, `${s.b.title} · ${s.b.author}`));
+    star.addEventListener("pointerleave", hideCard);
+    star.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); openDetail(star, s.b, list, i, true); });
+    night.append(star);
+  });
+
+  if (!stars.length) night.append(el("p", "night-empty", "No books on the shelves yet."));
+
+  // the lamp, still faintly there, to switch the lights back on
+  const lampRect = document.querySelector(".obj-lamp").getBoundingClientRect();
+  const sw = el("button", "night-lamp");
+  sw.type = "button";
+  sw.setAttribute("aria-label", "Lights: On");
+  Object.assign(sw.style, { left: `${lampRect.left}px`, top: `${lampRect.top}px`, width: `${lampRect.width}px`, height: `${lampRect.height}px` });
+  const li = el("img"); li.src = "assets/obj/lamp.png"; li.alt = "";
+  sw.append(li);
+  sw.addEventListener("pointerenter", () => labelFor(sw, "Lights: On"));
+  sw.addEventListener("pointerleave", hideCard);
+  sw.addEventListener("click", (e) => { e.stopPropagation(); lightsOn(); });
+  night.append(sw);
+
+  night.classList.add("on");
+  night.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    night.classList.add("dark");
+    night.querySelectorAll(".star").forEach((st) => {
+      st.style.left = `${st.dataset.x}px`;
+      st.style.top = `${st.dataset.y}px`;
+    });
+  }));
+}
+
+function lightsOn() {
+  if (!state.lightsOff) return;
+  state.lightsOff = false;
+  hideCard();
+  const night = $("night");
+  night.classList.add("lifting");
+  night.querySelectorAll(".star").forEach((st) => {
+    st.style.transitionDelay = "0ms";
+    st.style.left = `${st.dataset.x0}px`;
+    st.style.top = `${st.dataset.y0}px`;
+  });
+  night.classList.remove("dark");
+  setTimeout(() => {
+    night.classList.remove("on", "lifting");
+    night.setAttribute("aria-hidden", "true");
+    night.innerHTML = "";
+  }, 1500);
+}
+
+// =====================================================================
+// GLASSES: reading mode, the whole library as a plain list
+// =====================================================================
+function openReader(sort = state.readerSort || "genre") {
+  state.readerSort = sort;
+  const reader = $("reader");
+  const books = shelvedBooks();
+  const panel = reader.querySelector(".reader-sheet");
+  panel.innerHTML = "";
+  const head = el("div", "reader-head");
+  head.append(el("h2", "reader-title", "The fine print"));
+  const sorts = el("div", "reader-sorts");
+  [["genre", "Genre"], ["year", "Year read"], ["rating", "Rating"], ["title", "Title"]].forEach(([k, label]) => {
+    const b = el("button", "reader-sort" + (k === sort ? " on" : ""), label);
+    b.type = "button";
+    b.addEventListener("click", () => openReader(k));
+    sorts.append(b);
+  });
+  const close = el("button", "reader-close", "×");
+  close.type = "button";
+  close.setAttribute("aria-label", "Close");
+  close.addEventListener("click", closeReader);
+  head.append(sorts, close);
+  panel.append(head);
+
+  const year = (b) => (b.finished ? b.finished.slice(0, 4) : b.status === "reading" ? "Reading now" : "Undated");
+  const groupKey = { genre: (b) => b.genre, year, rating: (b) => (b.rating ? "★".repeat(b.rating) : "Unrated"), title: (b) => (b.title[0] || "#").toUpperCase() }[sort];
+  const order = {
+    genre: (a, b) => a.genre.localeCompare(b.genre) || a.title.localeCompare(b.title),
+    year: (a, b) => String(b.finished || "9999").localeCompare(String(a.finished || "9999")),
+    rating: (a, b) => (b.rating || 0) - (a.rating || 0) || a.title.localeCompare(b.title),
+    title: (a, b) => a.title.localeCompare(b.title),
+  }[sort];
+  const sorted = [...books].sort(order);
+  const body = el("div", "reader-body");
+  let current = null;
+  sorted.forEach((b, i) => {
+    const g = groupKey(b);
+    if (g !== current) { current = g; body.append(el("h3", "reader-group", g)); }
+    const row = el("button", "reader-row");
+    row.type = "button";
+    const left = el("span", "rr-main");
+    left.append(el("span", "rr-title", b.title), el("span", "rr-author", b.author));
+    const right = el("span", "rr-meta", [b.finished ? fmtDate(b.finished) : b.status === "reading" ? "Reading" : "", b.rating ? "★".repeat(b.rating) : ""].filter(Boolean).join("  ·  "));
+    row.append(left, right);
+    row.addEventListener("click", () => openDetail(row, b, sorted, i, true));
+    body.append(row);
+  });
+  if (!sorted.length) body.append(el("p", "reader-empty", "No books yet."));
+  panel.append(body);
+  reader.classList.add("on");
+  reader.setAttribute("aria-hidden", "false");
+}
+function closeReader() {
+  const r = $("reader");
+  r.classList.remove("on");
+  r.setAttribute("aria-hidden", "true");
+}
+
+// =====================================================================
+// HOURGLASS: genre shelves <-> year shelves
+// =====================================================================
+function assignByYear() {
+  state.bays = BAYS.map((b) => ({ ...b, home: b.genre, books: [] }));
+  const groups = new Map();
+  for (const b of shelvedBooks()) {
+    const y = b.finished ? b.finished.slice(0, 4) : b.status === "reading" ? String(new Date().getFullYear()) : "Undated";
+    if (!groups.has(y)) groups.set(y, []);
+    groups.get(y).push(b);
+  }
+  const keys = [...groups.keys()].sort((a, b) => (a === "Undated") - (b === "Undated") || b.localeCompare(a));
+  const slots = state.bays.filter((b) => b.home !== "Recommended");
+  slots.forEach((slot, i) => {
+    if (i < slots.length - 1 || keys.length <= slots.length) {
+      const k = keys[i];
+      slot.genre = k || "—";
+      if (k) slot.books.push(...groups.get(k));
+    } else {
+      slot.genre = "Earlier";
+      keys.slice(i).forEach((k) => slot.books.push(...groups.get(k)));
+    }
+  });
+  const rec = state.bays.find((b) => b.home === "Recommended");
+  rec.books = state.recs;
+}
+
+function flipTime(node) {
+  if (state.flipping) return;
+  state.flipping = true;
+  if (state.zoom) closeZoom();
+  node.classList.toggle("flipped");
+  state.byYear = !state.byYear;
+  const bays = $("bays");
+  bays.classList.add("shuffling");
+  setTimeout(() => {
+    if (state.byYear) assignByYear();
+    else assignBooks(state.books, state.recs);
+    buildRoom();
+    addPlant();
+    bays.classList.remove("shuffling");
+    bays.classList.add("settling");
+    setTimeout(() => { bays.classList.remove("settling"); state.flipping = false; }, 1400);
+  }, 520);
+}
+
+// =====================================================================
+// PLANT: watering, and on the 6th the tsundoku compartment
+// =====================================================================
+function waterPlant(node, bay) {
+  if (state.watering) return;
+  state.watering = true;
+  hideCard();
+  state.waterings++;
+  const host = node.parentElement;
+  const can = el("img", "can");
+  can.src = "assets/obj/can.png";
+  can.alt = "";
+  const pl = parseFloat(node.style.left), pt = parseFloat(node.style.top);
+  Object.assign(can.style, { left: `${pl - 66}px`, top: `${pt - 40}px` });
+  host.append(can);
+  for (let i = 0; i < 6; i++) {
+    const d = el("span", "drop");
+    Object.assign(d.style, { left: `${pl + 4 + i * 4}px`, top: `${pt - 6}px`, animationDelay: `${520 + i * 70}ms` });
+    host.append(d);
+  }
+  setTimeout(() => node.classList.add("bounce"), 760);
+  setTimeout(() => {
+    node.classList.remove("bounce");
+    host.querySelectorAll(".can, .drop").forEach((x) => x.remove());
+    state.watering = false;
+    if (state.waterings === 6 && !state.tsundokuFound) revealTsundoku(bay);
+    else if (state.tsundokuFound && state.waterings > 6) {
+      node.classList.add("droop");
+      flashLabel(node, "Here's a self help tip: Know when to stop.", 3000);
+      setTimeout(() => node.classList.remove("droop"), 2600);
+    }
+  }, 1500);
+}
+
+function revealTsundoku(bay) {
+  state.tsundokuFound = true;
+  openZoom(bay);
+  const pile = state.books.filter((b) => b.status === "unfinished");
+  setTimeout(() => {
+    const host = bay.el;
+    host.classList.add("secret");
+    const w = Math.min(bay.w * 0.62, 320), h = (bay.base - bay.top) * 0.86;
+    const x = (bay.w - w) / 2 - 30, y = LIFT + (bay.base - bay.top) - h;
+    const comp = el("div", "compartment");
+    Object.assign(comp.style, { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` });
+    const recess = el("div", "recess");
+    comp.append(recess);
+
+    // the doors are the real back panel of the bay, cut from the photo
+    const bgX = -(bay.x + x), bgY = -(bay.top - LIFT + y);
+    ["l", "r"].forEach((side) => {
+      const door = el("div", `door door-${side}`);
+      door.style.backgroundImage = `url("${IMG.src}")`;
+      door.style.backgroundSize = `${IMG.w}px ${IMG.h}px`;
+      door.style.backgroundPosition = `${bgX - (side === "r" ? w / 2 : 0)}px ${bgY}px`;
+      comp.append(door);
+    });
+
+    const plate = el("button", "ts-plate");
+    plate.type = "button";
+    plate.append(el("span", "ts-word", "Tsundoku"), el("span", "ts-kanji", "積ん読"));
+    plate.setAttribute("aria-label", "What is tsundoku?");
+    plate.addEventListener("click", (e) => { e.stopPropagation(); openNote(); });
+    plate.addEventListener("pointerenter", () => labelFor(plate, "What is this?"));
+    plate.addEventListener("pointerleave", hideCard);
+    recess.append(plate);
+
+    const heap = el("div", "heap");
+    recess.append(heap);
+    if (!pile.length) heap.append(el("p", "heap-empty", "Nothing piled up. Yet."));
+    let stackY = 0;
+    pile.forEach((b, i) => {
+      const r = seeded(b.id + "pile");
+      const slab = el("button", "slab");
+      slab.type = "button";
+      slab._book = b;
+      const len = Math.min(w * 0.78, b.height * 0.62), thick = Math.max(10, b.width * 0.42);
+      const propped = i > 0 && i % 4 === 3;
+      slab.style.background = b.spine;
+      slab.style.color = b.ink;
+      slab.style.width = `${propped ? thick : len}px`;
+      slab.style.height = `${propped ? len * 0.8 : thick}px`;
+      const tilt = propped ? 12 + r() * 8 : (r() - 0.5) * 14;
+      const dx = propped ? w * (0.62 + r() * 0.2) : w * 0.08 + r() * (w - len) * 0.6;
+      slab.style.left = `${dx}px`;
+      slab.style.bottom = `${propped ? 0 : stackY}px`;
+      slab.style.setProperty("--rot", `${tilt}deg`);
+      slab.style.animationDelay = `${700 + i * 160}ms`;
+      if (!propped) stackY += thick * 0.92;
+      slab.append(el("span", "slab-title", b.title));
+      slab.addEventListener("pointerenter", () => { slab.classList.add("lift"); showBookCard(slab, b); });
+      slab.addEventListener("pointerleave", () => { slab.classList.remove("lift"); hideCard(); });
+      slab.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); openDetail(slab, b, pile, i, true); });
+      heap.append(slab);
+    });
+    host.append(comp);
+    requestAnimationFrame(() => requestAnimationFrame(() => comp.classList.add("open")));
+  }, 1100);
+}
+
+function closeTsundoku(bay) {
+  if (!bay.el || !bay.el.classList.contains("secret")) return;
+  const comp = bay.el.querySelector(".compartment");
+  bay.el.classList.remove("secret");
+  if (comp) { comp.classList.remove("open"); setTimeout(() => comp.remove(), 900); }
+}
+
+function openNote() {
+  const n = $("note");
+  n.classList.add("on");
+  n.setAttribute("aria-hidden", "false");
+}
+function closeNote() {
+  const n = $("note");
+  n.classList.remove("on");
+  n.setAttribute("aria-hidden", "true");
+}
+
+// =====================================================================
+// PAPER PLANE: recommend a book
+// =====================================================================
+const normTitle = (t) => String(t || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
+let recPick = null, searchTimer = 0, searchCtl = null;
+
+function openRecForm(planeNode) {
+  if (state.zoom) closeZoom();
+  hideCard();
+  const form = $("recForm");
+  const sheet = form.querySelector(".rec-sheet");
+  const r = planeNode.getBoundingClientRect();
+  form.style.setProperty("--fx", `${r.left + r.width / 2 - innerWidth / 2}px`);
+  form.style.setProperty("--fy", `${r.top + r.height / 2 - innerHeight / 2}px`);
+  resetRecForm();
+  form.classList.add("on");
+  form.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    form.classList.add("open");
+    setTimeout(() => $("recSearch").focus({ preventScroll: true }), 600);
+  }));
+  sheet.scrollTop = 0;
+}
+
+function closeRecForm(sent) {
+  const form = $("recForm");
+  form.classList.remove("open");
+  setTimeout(() => {
+    form.classList.remove("on");
+    form.setAttribute("aria-hidden", "true");
+    if (sent && state.planeEl) {
+      state.planeEl.classList.add("fly");
+      setTimeout(() => {
+        state.planeEl.classList.remove("fly");
+        flashLabel(state.planeEl, "Thank you. It'll be on the shelf once I've seen it.", 3600);
+      }, 1700);
+    }
+  }, 650);
+}
+
+function resetRecForm() {
+  recPick = null;
+  $("recSearch").value = "";
+  $("recResults").innerHTML = "";
+  $("recPicked").innerHTML = "";
+  $("recFields").hidden = true;
+  $("recName").value = "";
+  $("recNote").value = "";
+  $("recErr").textContent = "";
+  $("recSend").disabled = false;
+}
+
+function setupRecForm() {
+  const input = $("recSearch");
+  input.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    const q = input.value.trim();
+    $("recErr").textContent = "";
+    if (q.length < 2) { $("recResults").innerHTML = ""; return; }
+    searchTimer = setTimeout(() => searchBooks(q), 300);
+  });
+  $("recForm").addEventListener("click", (e) => { if (e.target.id === "recForm") closeRecForm(false); });
+  $("recCancel").addEventListener("click", () => closeRecForm(false));
+  $("recName").addEventListener("input", () => { $("recErr").textContent = ""; });
+  $("recSend").addEventListener("click", sendRec);
+}
+
+async function searchBooks(q) {
+  if (searchCtl) searchCtl.abort();
+  searchCtl = new AbortController();
+  const list = $("recResults");
+  list.innerHTML = "";
+  list.append(el("p", "rec-hint", "Looking…"));
+  try {
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=6&fields=key,title,author_name,first_publish_year,cover_i`;
+    const res = await fetch(url, { signal: searchCtl.signal });
+    const data = await res.json();
+    list.innerHTML = "";
+    const docs = (data.docs || []).filter((d) => d.title);
+    if (!docs.length) { list.append(el("p", "rec-hint", "Nothing found. Try the title and author.")); return; }
+    docs.forEach((d) => {
+      const row = el("button", "rec-result");
+      row.type = "button";
+      const img = el("span", "rec-thumb");
+      if (d.cover_i) img.style.backgroundImage = `url("https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg")`;
+      const txt = el("span", "rec-txt");
+      txt.append(el("span", "rec-rt", d.title), el("span", "rec-ra", [d.author_name?.[0], d.first_publish_year].filter(Boolean).join(" · ")));
+      row.append(img, txt);
+      row.addEventListener("click", () => pickBook(d));
+      list.append(row);
+    });
+  } catch (e) {
+    if (e.name !== "AbortError") { list.innerHTML = ""; list.append(el("p", "rec-hint", "Search isn't answering right now. Try again in a moment.")); }
+  }
+}
+
+function pickBook(d) {
+  recPick = {
+    title: d.title,
+    author: d.author_name?.[0] || "",
+    year: d.first_publish_year || null,
+    ol_key: d.key || null,
+    cover: d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg` : "",
+  };
+  $("recResults").innerHTML = "";
+  $("recSearch").value = "";
+  const picked = $("recPicked");
+  picked.innerHTML = "";
+  const card = el("div", "rec-card");
+  const c = el("span", "rec-cover");
+  if (recPick.cover) c.style.backgroundImage = `url("${recPick.cover.replace("-L.jpg", "-M.jpg")}")`;
+  const t = el("div", "rec-ctxt");
+  t.append(el("span", "rec-rt big", recPick.title), el("span", "rec-ra", [recPick.author, recPick.year].filter(Boolean).join(" · ")));
+  card.append(c, t);
+  picked.append(card);
+
+  const mine = state.books.find((b) => b.status !== "unfinished" && normTitle(b.title) === normTitle(recPick.title));
+  if (mine) {
+    $("recFields").hidden = true;
+    const have = el("button", "rec-have", "Already on the shelf.");
+    have.type = "button";
+    have.addEventListener("click", () => {
+      const list = shelvedBooks();
+      closeRecForm(false);
+      setTimeout(() => openDetail(state.planeEl, mine, list, list.indexOf(mine), true), 700);
+    });
+    picked.append(have);
+    return;
+  }
+  $("recFields").hidden = false;
+  setTimeout(() => $("recName").focus({ preventScroll: true }), 50);
+}
+
+async function sendRec() {
+  const err = $("recErr");
+  const name = $("recName").value.trim();
+  const note = $("recNote").value.trim();
+  if (!recPick) { err.textContent = "Pick a book first."; return; }
+  if (!name) { err.textContent = "Add your name so I know who to thank."; $("recName").focus(); return; }
+  if (name.length > 60) { err.textContent = "Name is a little long (60 characters max)."; return; }
+  if (note.length > 500) { err.textContent = "Keep the note under 500 characters."; return; }
+  $("recSend").disabled = true;
+  err.textContent = "";
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/recommend`, {
+      method: "POST",
+      headers: { "content-type": "application/json", apikey: SUPABASE_KEY },
+      body: JSON.stringify({ ...recPick, recommender: name, note, website: $("recHp").value }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't send it.");
+    closeRecForm(true);
+  } catch (e) {
+    err.textContent = e.message && e.message !== "Failed to fetch" ? e.message : "Couldn't send it just now. Try again in a moment.";
+    $("recSend").disabled = false;
+  }
+}
+
 // ---------- keys, resize, boot ----------
 addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (state.detail) return closeDetail();
+    if ($("note").classList.contains("on")) return closeNote();
+    if ($("recForm").classList.contains("on")) return closeRecForm(false);
+    if ($("reader").classList.contains("on")) return closeReader();
+    if (state.lightsOff) return lightsOn();
+  }
   if (state.detail) {
     if (e.key === "Escape") closeDetail();
     else if (e.key === "ArrowLeft") swapDetail(-1);
@@ -758,6 +1308,9 @@ addEventListener("keydown", (e) => {
   }
 });
 $("detailDim").addEventListener("click", closeDetail);
+$("reader").addEventListener("click", (e) => { if (e.target.id === "reader") closeReader(); });
+$("note").addEventListener("click", closeNote);
+setupRecForm();
 
 // first-timer hint in the corner
 const helpBtn = $("help");
@@ -778,6 +1331,7 @@ let resizeTimer = 0;
 addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
+    if (state.lightsOff) lightsOn();
     if (state.zoom) {
       sizeBayBox(state.zoom);
       placeCurtain(state.zoom);
@@ -804,6 +1358,7 @@ async function boot() {
     const n = books.filter((b) => b.status !== "unfinished").length;
     $("volumes").textContent = `${n} ${n === 1 ? "volume" : "volumes"}`;
     state.books = books;
+    state.recs = recs;
     if (SHOW_OBJECTS) buildObjects();
     document.body.classList.add("ready");
     setupTitle();

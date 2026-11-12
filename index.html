@@ -56,6 +56,40 @@
     <aside class="panel" id="panel" aria-live="polite"></aside>
   </section>
 
+  <section class="night" id="night" aria-hidden="true" aria-label="Night sky"></section>
+
+  <section class="reader" id="reader" aria-hidden="true" aria-label="Reading list">
+    <div class="reader-sheet"></div>
+  </section>
+
+  <section class="rec-form" id="recForm" aria-hidden="true" aria-label="Recommend a book">
+    <div class="rec-sheet">
+      <h2 class="rec-title">Is my shelf missing a gem?</h2>
+      <label class="rec-label" for="recSearch">Find the book</label>
+      <input class="rec-input" id="recSearch" type="search" placeholder="Search by title or author" autocomplete="off">
+      <div class="rec-results" id="recResults"></div>
+      <div id="recPicked"></div>
+      <div class="rec-fields" id="recFields" hidden>
+        <label class="rec-label" for="recName">Your name</label>
+        <input class="rec-input" id="recName" maxlength="60" autocomplete="given-name">
+        <label class="rec-label" for="recNote">Why should I read it? <em>(optional)</em></label>
+        <textarea class="rec-input rec-area" id="recNote" maxlength="500" rows="3"></textarea>
+        <input class="rec-hp" id="recHp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <p class="rec-err" id="recErr" role="alert"></p>
+        <button class="rec-send" id="recSend" type="button">Fold it &amp; send</button>
+      </div>
+      <button class="rec-cancel" id="recCancel" type="button">Never mind</button>
+    </div>
+  </section>
+
+  <section class="note" id="note" aria-hidden="true">
+    <div class="note-sheet" role="dialog" aria-label="Tsundoku">
+      <p class="note-word">積ん読 · <em>tsundoku</em> <span>(n.)</span></p>
+      <p class="note-def">Japanese. The habit of acquiring books and letting them pile up, unread or half-read. From <em>tsunde oku</em>, to pile up and leave for later, and <em>doku</em>, to read.</p>
+      <p class="note-mine">Rather than a messy or shameful habit, I view it as a comforting collection of potential knowledge, or “little piles of joy and anticipation”.</p>
+    </div>
+  </section>
+
   <div class="hover-card" id="hoverCard" role="tooltip"></div>
 
   <button class="help" id="help" type="button" aria-label="How to explore" aria-expanded="false">?</button>
