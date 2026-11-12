@@ -3,6 +3,9 @@ import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITL
 import * as SPR from "./sprites.js";
 import { ESTATE_URL } from "./config.js";
 
+// Pixel sprites are parked: objects will come back as photographed cut-outs.
+const SHOW_OBJECTS = false;
+
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) {
@@ -810,7 +813,7 @@ async function boot() {
     const n = books.filter((b) => b.status !== "unfinished").length;
     $("volumes").textContent = `${n} ${n === 1 ? "volume" : "volumes"}`;
     state.books = books;
-    buildObjects();
+    if (SHOW_OBJECTS) buildObjects();
     document.body.classList.add("ready");
     runIntro();
   } catch (err) {

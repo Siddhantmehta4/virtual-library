@@ -39,7 +39,7 @@ export const BOOK_K = 0.6;
 export const BAYS = BAY_GENRES.flatMap((genres, r) =>
   genres.map((genre, c) => ({
     genre,
-    reserve: genre === "Self-Help" ? 120 : 0,
+    reserve: 0,
     row: r,
     col: c,
     lit: ROWS[r].lit,
