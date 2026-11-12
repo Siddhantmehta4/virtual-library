@@ -64,9 +64,11 @@ export const GENRE_ALIASES = {
   "art & creativity": "Art & Creativity",
 };
 
-// The big title on the wall above the case (seen during the opening shot).
-// introTop: highest image row the opening frame shows; wallLimit: real wall ends 810px up.
-export const TITLE = { y: -420, introTop: -520, wallLimit: 800 };
+// The title on the wall: down the right-hand wall on landscape screens, above the case on phones.
+export const TITLE = {
+  side: { x: 2440, w: 430, y: 360 },
+  top: { x: 0, w: 2912, y: -400 },
+};
 
 // Pixel objects: x = centre, base = where they stand (image px), px = size of one art pixel.
 export const OBJECTS = {

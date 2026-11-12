@@ -272,16 +272,21 @@ function syncPerspective(bay) {
 // ---------- camera ----------
 function overviewTransform() {
   const vw = innerWidth, vh = innerHeight;
-  const caseW = CASE.x1 - CASE.x0 + 80;
-  // fit the case from just above the arches down to the near edge of the rug
   const viewH = CASE.floor - CASE.y0 + 20;
-  let s = Math.min(vw / caseW, vh / viewH);
-  if (vw >= vh) s = Math.max(s, vw / IMG.w); // landscape: never show past the photo's sides
+  if (vw >= vh) {
+    // case on the left, the stretch of wall to its right carries the title
+    const left = CASE.x0 - 40;
+    const s = Math.min(vw / (IMG.w - left), vh / viewH);
+    const tx = vw - IMG.w * s;
+    let ty = vh - CASE.floor * s;
+    if (vh / s > viewH) ty = vh / 2 - ((CASE.y0 + CASE.floor) / 2) * s;
+    if (IMG.h * s >= vh) ty = clamp(ty, vh - IMG.h * s, 0);
+    return { s, tx, ty };
+  }
+  const caseW = CASE.x1 - CASE.x0 + 80;
+  const s = Math.min(vw / caseW, vh / viewH);
   let tx = vw / 2 - ((CASE.x0 + CASE.x1) / 2) * s;
-  let ty = vh - CASE.floor * s;
-  if (vh / s > viewH) ty = vh / 2 - ((CASE.y0 + CASE.floor) / 2) * s; // tall screens: centre it
-  if (IMG.w * s >= vw) tx = clamp(tx, vw - IMG.w * s, 0);
-  if (IMG.h * s >= vh) ty = clamp(ty, vh - IMG.h * s, 0);
+  let ty = vh / 2 - ((CASE.y0 + CASE.floor) / 2) * s;
   return { s, tx, ty };
 }
 
@@ -623,54 +628,14 @@ function closeDetail() {
 }
 
 
-// ---------- opening shot ----------
-// The page opens pulled back, the title large on the wall above the case, then glides in.
-function introTransform() {
-  const vw = innerWidth, vh = innerHeight;
-  const o = overviewTransform();
-  if (vw < vh) return { ...o, s: o.s * 0.9, tx: vw / 2 - ((CASE.x0 + CASE.x1) / 2) * o.s * 0.9, ty: o.ty + vh * 0.05 };
-  const top = TITLE.introTop;
-  let s = Math.min(vw / (CASE.x1 - CASE.x0 + 80), vh / (CASE.floor - top));
-  s = Math.max(s, vw / IMG.w);
-  const tx = clamp(vw / 2 - ((CASE.x0 + CASE.x1) / 2) * s, vw - IMG.w * s, 0);
-  let ty = vh - CASE.floor * s;
-  ty = Math.min(ty, TITLE.wallLimit * s); // never past the top of the real wall
-  return { s, tx, ty };
-}
-
+// Landscape: stacked down the wall to the right of the case. Portrait: across the wall above it.
 function placeTitle() {
   const t = $("wallTitle");
-  t.style.left = "0px";
-  t.style.width = `${IMG.w}px`;
-  t.style.top = `${TITLE.y}px`;
-}
-
-function runIntro() {
-  if (reduceMotion) return;
-  state.intro = true;
-  const done = () => {
-    if (!state.intro) return;
-    state.intro = false;
-    clearTimeout(timer);
-    removeEventListener("pointerdown", skip, true);
-    removeEventListener("wheel", skip, true);
-    removeEventListener("keydown", skip, true);
-  };
-  const go = (ms) => {
-    done();
-    applyCamera(overviewTransform(), false, ms);
-    setTimeout(() => { $("stage").style.transition = ""; }, ms + 50);
-  };
-  const skip = (e) => {
-    if (!state.intro) return;
-    e.stopPropagation();
-    if (e.type === "wheel") e.preventDefault();
-    go(650);
-  };
-  addEventListener("pointerdown", skip, true);
-  addEventListener("wheel", skip, { capture: true, passive: false });
-  addEventListener("keydown", skip, true);
-  const timer = setTimeout(() => go(1900), 2700);
+  const side = innerWidth >= innerHeight;
+  t.classList.toggle("side", side);
+  t.classList.toggle("top", !side);
+  const box = side ? TITLE.side : TITLE.top;
+  Object.assign(t.style, { left: `${box.x}px`, width: `${box.w}px`, top: `${box.y}px` });
 }
 
 // ---------- pixel objects ----------
@@ -793,7 +758,7 @@ addEventListener("resize", () => {
       placeDepth(state.zoom);
       syncPerspective(state.zoom);
       applyCamera(zoomTransform(state.zoom));
-    } else applyCamera(state.intro ? introTransform() : overviewTransform(), true);
+    } else { placeTitle(); applyCamera(overviewTransform(), true); }
   }, 120);
 });
 
@@ -802,7 +767,7 @@ async function boot() {
   stage.style.width = `${IMG.w}px`;
   stage.style.height = `${IMG.h}px`;
   placeTitle();
-  applyCamera(reduceMotion ? overviewTransform() : introTransform(), true);
+  applyCamera(overviewTransform(), true);
   setupScrolling();
   const photo = $("photo");
   const photoReady = photo.complete ? Promise.resolve() : new Promise((r) => { photo.onload = r; photo.onerror = r; });
@@ -815,7 +780,6 @@ async function boot() {
     state.books = books;
     if (SHOW_OBJECTS) buildObjects();
     document.body.classList.add("ready");
-    runIntro();
   } catch (err) {
     console.error(err);
     $("status").textContent = "The library is closed for a moment. Try again shortly.";
