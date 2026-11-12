@@ -19,7 +19,7 @@
   <link rel="preload" as="image" href="assets/room.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Karla:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Karla:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -31,11 +31,13 @@
       <img class="photo-ext wall" id="extWall" src="assets/room-wall.jpg" width="2912" height="849" alt="" aria-hidden="true">
       <img class="photo-ext floor" id="extFloor" src="assets/room-floor.jpg" width="2912" height="869" alt="" aria-hidden="true">
       <div class="depth" id="depth" aria-hidden="true"></div>
-      <div class="inscription" id="inscription">
+      <div class="wall-title" id="wallTitle">
         <h1 class="welcome">Welcome to my library</h1>
         <p class="volumes" id="volumes"></p>
       </div>
+      <div class="lamp-glow" id="lampGlow" aria-hidden="true"></div>
       <div class="bays" id="bays" aria-label="Bookcase"></div>
+      <div class="objects" id="objects"></div>
       <div class="curtain" id="curtain" aria-hidden="true"><div></div><div></div><div></div><div></div></div>
     </div>
     <p class="status" id="status" role="status"></p>

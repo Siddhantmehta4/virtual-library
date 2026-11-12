@@ -1,5 +1,7 @@
 import { loadLibrary } from "./data.js";
-import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES } from "./layout.js";
+import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITLE } from "./layout.js";
+import * as SPR from "./sprites.js";
+import { ESTATE_URL } from "./config.js";
 
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -138,6 +140,7 @@ function showBookCard(anchor, b) {
   clearTimeout(cardTimer);
   const card = $("hoverCard");
   card.innerHTML = "";
+  card.classList.remove("label");
   let meta = "";
   if (b.kind === "rec") meta = `Recommended by ${b.recommender}`;
   else if (b.status === "reading") meta = "Currently reading";
@@ -154,6 +157,7 @@ function showBayCard(anchor, bay) {
   clearTimeout(cardTimer);
   const card = $("hoverCard");
   card.innerHTML = "";
+  card.classList.remove("label");
   card.append(el("p", "hc-title", bay.genre));
   const n = bay.books.length;
   card.append(el("p", "hc-bits", `${n} ${n === 1 ? "book" : "books"}  ·  click to look closer`));
@@ -213,7 +217,7 @@ function buildRoom() {
 function fillBay(bay, all) {
   const row = bay.row;
   row.innerHTML = "";
-  const room = bay.w - 16;
+  const room = bay.w - 16 - (bay.reserve || 0);
   const widths = bay.books.map((b) => b.width * BOOK_K + GAP);
   const total = widths.reduce((a, x) => a + x, 0);
   let fit = bay.books.length;
@@ -245,7 +249,8 @@ function fillBay(bay, all) {
     stack.addEventListener("click", (e) => { e.stopPropagation(); openZoom(bay); });
     row.append(stack);
   }
-  row.style.width = all ? `${Math.max(total + 16, bayWindow(bay).w)}px` : "";
+  row.style.paddingRight = bay.reserve ? `${bay.reserve + 8}px` : "";
+  row.style.width = all ? `${Math.max(total + 16 + (bay.reserve || 0), bayWindow(bay).w)}px` : "";
   bay.scroller.scrollLeft = 0;
   syncPerspective(bay);
 }
@@ -321,8 +326,11 @@ function pickPhotoRes(s) {
   }
 }
 
-function applyCamera(t) {
-  $("stage").style.transform = `translate(${t.tx}px, ${t.ty}px) scale(${t.s})`;
+function applyCamera(t, instant = false, ms = 0) {
+  const stage = $("stage");
+  stage.style.transition = instant ? "none" : ms ? `transform ${ms}ms cubic-bezier(0.55, 0, 0.2, 1)` : "";
+  stage.style.transform = `translate(${t.tx}px, ${t.ty}px) scale(${t.s})`;
+  if (instant) void stage.offsetWidth;
   pickPhotoRes(t.s);
   if (!state.zoom) placeExtensions(t);
 }
@@ -488,7 +496,7 @@ function layoutTarget(rectH) {
   return { scale, x: startX, y: innerHeight / 2, narrow, coverH, coverW, panelW };
 }
 
-function openDetail(btn, b, list, index) {
+function openDetail(btn, b, list, index, keepSource = false) {
   const rect = btn.getBoundingClientRect();
   const fly = $("fly");
   fly.innerHTML = "";
@@ -503,7 +511,8 @@ function openDetail(btn, b, list, index) {
   const t = layoutTarget(rect.height);
   const final = `translate(${t.x - rect.right}px, ${t.y - (rect.top + rect.height / 2)}px) scale(${t.scale}) rotateY(-90deg)`;
   state.detail = { btn, b, list, index, swapped: false, rectH: rect.height };
-  btn.classList.add("away");
+  if (!keepSource) btn.classList.add("away");
+  else state.detail.swapped = true; // fades out on close instead of flying back into an object
   renderPanel(b, list, index, t);
 
   const detail = $("detail");
@@ -610,6 +619,135 @@ function closeDetail() {
   }, 640);
 }
 
+
+// ---------- opening shot ----------
+// The page opens pulled back, the title large on the wall above the case, then glides in.
+function introTransform() {
+  const vw = innerWidth, vh = innerHeight;
+  const o = overviewTransform();
+  if (vw < vh) return { ...o, s: o.s * 0.9, tx: vw / 2 - ((CASE.x0 + CASE.x1) / 2) * o.s * 0.9, ty: o.ty + vh * 0.05 };
+  const top = TITLE.introTop;
+  let s = Math.min(vw / (CASE.x1 - CASE.x0 + 80), vh / (CASE.floor - top));
+  s = Math.max(s, vw / IMG.w);
+  const tx = clamp(vw / 2 - ((CASE.x0 + CASE.x1) / 2) * s, vw - IMG.w * s, 0);
+  let ty = vh - CASE.floor * s;
+  ty = Math.min(ty, TITLE.wallLimit * s); // never past the top of the real wall
+  return { s, tx, ty };
+}
+
+function placeTitle() {
+  const t = $("wallTitle");
+  t.style.left = "0px";
+  t.style.width = `${IMG.w}px`;
+  t.style.top = `${TITLE.y}px`;
+}
+
+function runIntro() {
+  if (reduceMotion) return;
+  state.intro = true;
+  const done = () => {
+    if (!state.intro) return;
+    state.intro = false;
+    clearTimeout(timer);
+    removeEventListener("pointerdown", skip, true);
+    removeEventListener("wheel", skip, true);
+    removeEventListener("keydown", skip, true);
+  };
+  const go = (ms) => {
+    done();
+    applyCamera(overviewTransform(), false, ms);
+    setTimeout(() => { $("stage").style.transition = ""; }, ms + 50);
+  };
+  const skip = (e) => {
+    if (!state.intro) return;
+    e.stopPropagation();
+    if (e.type === "wheel") e.preventDefault();
+    go(650);
+  };
+  addEventListener("pointerdown", skip, true);
+  addEventListener("wheel", skip, { capture: true, passive: false });
+  addEventListener("keydown", skip, true);
+  const timer = setTimeout(() => go(1900), 2700);
+}
+
+// ---------- pixel objects ----------
+function labelFor(anchor, text) {
+  clearTimeout(cardTimer);
+  const card = $("hoverCard");
+  card.innerHTML = "";
+  card.classList.add("label");
+  card.append(el("p", "hc-line", text));
+  placeCard(anchor);
+}
+
+function makeObject(spec, sprite, label, onClick) {
+  const P = spec.px;
+  const node = el(onClick ? "button" : "div", `obj obj-${spec.id}`);
+  if (onClick) node.type = "button";
+  node.setAttribute("aria-label", typeof label === "function" ? label() : label);
+  const img = el("img");
+  img.src = sprite.frames[0];
+  img.alt = "";
+  img.draggable = false;
+  img.width = sprite.w * P;
+  img.height = sprite.h * P;
+  node.append(img);
+  Object.assign(node.style, {
+    left: `${spec.x - (sprite.w * P) / 2}px`,
+    top: `${spec.base - sprite.h * P}px`,
+    width: `${sprite.w * P}px`,
+    height: `${sprite.h * P}px`,
+  });
+  let anim = 0;
+  const start = () => {
+    if (sprite.frames.length < 2 || anim) return;
+    let i = 0;
+    anim = setInterval(() => { i = (i + 1) % sprite.frames.length; img.src = sprite.frames[i]; }, spec.fps || 140);
+  };
+  const stop = () => { clearInterval(anim); anim = 0; img.src = node.dataset.rest || sprite.frames[0]; };
+  node.addEventListener("pointerenter", () => {
+    if (state.zoom && !node.closest(".bay.zoomed")) return;
+    start();
+    labelFor(node, typeof label === "function" ? label() : label);
+  });
+  node.addEventListener("pointerleave", () => { stop(); hideCard(); $("hoverCard").classList.remove("label"); });
+  if (onClick) node.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); onClick(node, e); });
+  node.img = img;
+  return node;
+}
+
+function buildObjects() {
+  const layer = $("objects");
+  layer.innerHTML = "";
+  const reading = state.books.filter((b) => b.status === "reading");
+  const shelved = state.bays.filter((b) => b.genre !== "Recommended").flatMap((b) => b.books);
+
+  layer.append(makeObject(OBJECTS.lamp, SPR.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off")));
+  layer.append(makeObject(OBJECTS.glasses, SPR.glasses, "For the fine print."));
+  layer.append(makeObject(OBJECTS.hourglass, SPR.hourglass, "Time in a bottle."));
+  layer.append(makeObject(OBJECTS.book, SPR.openBook,
+    () => (reading.length ? `Currently reading: ${reading.map((b) => b.title).join(" · ")}` : "Currently reading: nothing open right now."),
+    (node) => { if (reading.length) openDetail(node, reading[0], reading, 0, true); }));
+  layer.append(makeObject(OBJECTS.pen, SPR.pen, "The Key to the Estate",
+    () => { if (ESTATE_URL) window.open(ESTATE_URL, "_blank", "noopener"); }));
+  layer.append(makeObject(OBJECTS.deck, SPR.deck, "Pick a card, any card.",
+    (node) => {
+      if (!shelved.length) return;
+      const i = Math.floor(Math.random() * shelved.length);
+      openDetail(node, shelved[i], shelved, i, true);
+    }));
+  layer.append(makeObject(OBJECTS.plane, SPR.plane, "Is my shelf missing a gem?"));
+
+  // the plant lives inside the Self-Help bay so it zooms with it
+  const sh = state.bays.find((b) => b.genre === OBJECTS.plant.bay);
+  if (sh) {
+    const spec = { ...OBJECTS.plant, x: sh.w - OBJECTS.plant.inset, base: sh.base - sh.top + LIFT };
+    sh.el.append(makeObject(spec, SPR.plant, "Looks thirsty."));
+  }
+  const glow = $("lampGlow");
+  Object.assign(glow.style, { left: `${OBJECTS.lamp.x - 330}px`, top: `${OBJECTS.lamp.base - 420}px` });
+}
+
 // ---------- keys, resize, boot ----------
 addEventListener("keydown", (e) => {
   if (state.detail) {
@@ -652,7 +790,7 @@ addEventListener("resize", () => {
       placeDepth(state.zoom);
       syncPerspective(state.zoom);
       applyCamera(zoomTransform(state.zoom));
-    } else applyCamera(overviewTransform());
+    } else applyCamera(state.intro ? introTransform() : overviewTransform(), true);
   }, 120);
 });
 
@@ -660,7 +798,8 @@ async function boot() {
   const stage = $("stage");
   stage.style.width = `${IMG.w}px`;
   stage.style.height = `${IMG.h}px`;
-  applyCamera(overviewTransform());
+  placeTitle();
+  applyCamera(reduceMotion ? overviewTransform() : introTransform(), true);
   setupScrolling();
   const photo = $("photo");
   const photoReady = photo.complete ? Promise.resolve() : new Promise((r) => { photo.onload = r; photo.onerror = r; });
@@ -670,8 +809,10 @@ async function boot() {
     buildRoom();
     const n = books.filter((b) => b.status !== "unfinished").length;
     $("volumes").textContent = `${n} ${n === 1 ? "volume" : "volumes"}`;
+    state.books = books;
+    buildObjects();
     document.body.classList.add("ready");
-    setTimeout(() => $("inscription").classList.add("settled"), 4500);
+    runIntro();
   } catch (err) {
     console.error(err);
     $("status").textContent = "The library is closed for a moment. Try again shortly.";

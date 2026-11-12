@@ -39,6 +39,7 @@ export const BOOK_K = 0.6;
 export const BAYS = BAY_GENRES.flatMap((genres, r) =>
   genres.map((genre, c) => ({
     genre,
+    reserve: genre === "Self-Help" ? 120 : 0,
     row: r,
     col: c,
     lit: ROWS[r].lit,
@@ -61,4 +62,20 @@ export const GENRE_ALIASES = {
   "scifi": "Sci-Fi",
   "art and creativity": "Art & Creativity",
   "art & creativity": "Art & Creativity",
+};
+
+// The big title on the wall above the case (seen during the opening shot).
+// introTop: highest image row the opening frame shows; wallLimit: real wall ends 810px up.
+export const TITLE = { y: -420, introTop: -520, wallLimit: 800 };
+
+// Pixel objects: x = centre, base = where they stand (image px), px = size of one art pixel.
+export const OBJECTS = {
+  lamp: { id: "lamp", x: 1430, base: 506, px: 7, fps: 170 },
+  glasses: { id: "glasses", x: 705, base: 506, px: 6, fps: 110 },
+  hourglass: { id: "hourglass", x: 885, base: 506, px: 6, fps: 120 },
+  book: { id: "book", x: 2040, base: 506, px: 6, fps: 130 },
+  pen: { id: "pen", x: 2210, base: 508, px: 5 },
+  deck: { id: "deck", x: 640, base: 1518, px: 6, fps: 160 },
+  plane: { id: "plane", x: 2220, base: 1518, px: 6 },
+  plant: { id: "plant", bay: "Self-Help", inset: 62, px: 4, fps: 160 },
 };
