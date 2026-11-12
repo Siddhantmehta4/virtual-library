@@ -77,7 +77,11 @@ body.ready .bays { opacity: 1; }
   opacity: 0;
   transition: opacity 1.4s ease;
 }
-body.ready .wall-title { opacity: 0.8; }
+body.ready .wall-title { opacity: 0.6; }
+body.ready .wall-title.faded { opacity: 0; transition-duration: 1.6s; }
+body.ready .wall-title.faded.peek { opacity: 0.6; transition-duration: 0.5s; }
+.wall-zone { position: absolute; }
+.scene.zooming .wall-zone { pointer-events: none; }
 .welcome {
   margin: 0;
   font-family: var(--font-display);
@@ -100,7 +104,7 @@ body.ready .wall-title { opacity: 0.8; }
   color: #f4efe4;
   text-shadow: 0 6px 16px rgba(20, 14, 6, 0.4);
 }
-.wall-title.side .volumes { margin: 54px 0 0; font-size: 30px; }
+.wall-title.side .volumes { margin: 40px 0 0; font-size: 30px; }
 .wall-title.top .volumes { margin: 28px 0 0; font-size: 42px; }
 
 /* ---------- pixel objects ---------- */

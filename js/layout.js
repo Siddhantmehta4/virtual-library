@@ -66,8 +66,8 @@ export const GENRE_ALIASES = {
 
 // The title on the wall: down the right-hand wall on landscape screens, above the case on phones.
 export const TITLE = {
-  side: { x: 2440, w: 430, y: 440, h: 860 },
-  top: { x: 0, w: 2912, y: -400 },
+  side: { x: 2440, w: 430, y: 640, h: 600, zone: { x: 2410, y: -810, w: 502, h: 2400 } },
+  top: { x: 0, w: 2912, y: -400, zone: { x: 0, y: -810, w: 2912, h: 870 } },
 };
 
 // Pixel objects: x = centre, base = where they stand (image px), px = size of one art pixel.

@@ -636,6 +636,23 @@ function placeTitle() {
   t.classList.toggle("top", !side);
   const box = side ? TITLE.side : TITLE.top;
   Object.assign(t.style, { left: `${box.x}px`, width: `${box.w}px`, top: `${box.y}px`, height: box.h ? `${box.h}px` : "" });
+  const z = box.zone;
+  Object.assign($("wallZone").style, { left: `${z.x}px`, top: `${z.y}px`, width: `${z.w}px`, height: `${z.h}px` });
+}
+
+// The title shows for a few seconds, then fades; it returns while the wall is hovered (or tapped).
+function setupTitle() {
+  const t = $("wallTitle"), zone = $("wallZone");
+  setTimeout(() => t.classList.add("faded"), 5000);
+  zone.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") t.classList.add("peek"); });
+  zone.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") t.classList.remove("peek"); });
+  let tapTimer = 0;
+  zone.addEventListener("click", () => {
+    if (canHover) return;
+    t.classList.add("peek");
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => t.classList.remove("peek"), 3000);
+  });
 }
 
 // ---------- pixel objects ----------
@@ -780,6 +797,7 @@ async function boot() {
     state.books = books;
     if (SHOW_OBJECTS) buildObjects();
     document.body.classList.add("ready");
+    setupTitle();
   } catch (err) {
     console.error(err);
     $("status").textContent = "The library is closed for a moment. Try again shortly.";
