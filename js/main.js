@@ -665,15 +665,19 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 function makeObject(spec, label, onClick) {
-  const node = el(onClick ? "button" : "div", `obj obj-${spec.id}`);
+  const node = el(onClick ? "button" : "div", `obj obj-${spec.id} zone-${spec.zone}`);
   if (onClick) node.type = "button";
   const text = () => (typeof label === "function" ? label() : label);
   node.setAttribute("aria-label", text());
   const img = el("img");
-  img.src = `assets/obj/${spec.img || spec.id}.png`;
+  const src = `assets/obj/${spec.img || spec.id}.png`;
+  img.src = src;
   img.alt = "";
   img.draggable = false;
-  node.append(img);
+  // contact shadow on the surface it stands on, then the object, then a light pass clipped to its shape
+  const tint = el("span", "tint");
+  tint.style.setProperty("--src", `url("${src}")`);
+  node.append(el("span", "contact"), img, tint);
   const w = spec.w, h = spec.h;
   Object.assign(node.style, { left: `${spec.x - w / 2}px`, top: `${spec.base - h}px`, width: `${w}px`, height: `${h}px` });
   node.addEventListener("pointerenter", () => {
@@ -714,7 +718,9 @@ function buildObjects() {
     sh.el.append(makeObject(spec, "Looks thirsty."));
   }
   const glow = $("lampGlow");
-  Object.assign(glow.style, { left: `${OBJECTS.lamp.x - 330}px`, top: `${OBJECTS.lamp.base - 430}px` });
+  // the lamp's light: the shade sits over the left of the image, the bulb about a third of the way down
+  const L = OBJECTS.lamp;
+  Object.assign(glow.style, { left: `${L.x - L.w / 2 + L.w * 0.3 - 260}px`, top: `${L.base - L.h + L.h * 0.34 - 170}px` });
 }
 
 // ---------- keys, resize, boot ----------

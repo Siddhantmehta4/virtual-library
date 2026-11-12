@@ -39,7 +39,7 @@ export const BOOK_K = 0.6;
 export const BAYS = BAY_GENRES.flatMap((genres, r) =>
   genres.map((genre, c) => ({
     genre,
-    reserve: genre === "Self-Help" ? 150 : 0,
+    reserve: genre === "Self-Help" ? 120 : 0,
     row: r,
     col: c,
     lit: ROWS[r].lit,
@@ -66,18 +66,21 @@ export const GENRE_ALIASES = {
 
 // The title on the wall: down the right-hand wall on landscape screens, above the case on phones.
 export const TITLE = {
-  side: { x: 2440, w: 430, y: 640, h: 600, zone: { x: 2410, y: -810, w: 502, h: 2400 } },
+  side: { x: 2440, w: 430, y: 530, h: 640, zone: { x: 2410, y: -810, w: 502, h: 2400 } },
   top: { x: 0, w: 2912, y: -400, zone: { x: 0, y: -810, w: 2912, h: 870 } },
 };
 
 // Objects: photographed cut-outs. x = centre, base = where they stand, w/h = size (image px).
+// Sizes follow real-world scale against the books (tallest spine ~152px ≈ 24cm, so ~6px per cm).
+// base = the line the object stands on: the arch shelf top is at y≈497 (its front edge runs to 521);
+// the floor in front of the plinth starts at y≈1446. zone sets the light it receives.
 export const OBJECTS = {
-  lamp: { id: "lamp", x: 1430, base: 510, w: 240, h: 284 },
-  glasses: { id: "glasses", x: 715, base: 510, w: 112, h: 240 },
-  hourglass: { id: "hourglass", x: 905, base: 510, w: 100, h: 189 },
-  book: { id: "book", x: 2030, base: 513, w: 360, h: 108 },
-  pen: { id: "pen", x: 2240, base: 516, w: 160, h: 42 },
-  deck: { id: "deck", x: 655, base: 1512, w: 124, h: 85 },
-  plane: { id: "plane", x: 2300, base: 1522, w: 176, h: 97 },
-  plant: { id: "plant", bay: "Self-Help", inset: 82, w: 150, h: 160 },
+  lamp: { id: "lamp", x: 1418, base: 499, w: 148, h: 175, zone: "lamp" },
+  glasses: { id: "glasses", x: 735, base: 499, w: 62, h: 132, zone: "arch-left" },
+  hourglass: { id: "hourglass", x: 850, base: 499, w: 52, h: 99, zone: "arch-left" },
+  book: { id: "book", x: 2045, base: 500, w: 175, h: 52, zone: "arch-right" },
+  pen: { id: "pen", x: 2170, base: 501, w: 86, h: 23, zone: "arch-right" },
+  deck: { id: "deck", x: 690, base: 1488, w: 66, h: 45, zone: "floor" },
+  plane: { id: "plane", x: 2335, base: 1500, w: 128, h: 71, zone: "floor" },
+  plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
 };
