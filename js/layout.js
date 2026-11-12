@@ -74,13 +74,15 @@ export const TITLE = {
 // Sizes follow real-world scale against the books (tallest spine ~152px ≈ 24cm, so ~6px per cm).
 // base = the line the object stands on: the arch shelf top is at y≈497 (its front edge runs to 521);
 // the floor in front of the plinth starts at y≈1446. zone sets the light it receives.
+// foot: fraction of the image height where the object actually rests (anything below hangs over, like a ribbon).
+// squash: flattens objects photographed from higher up to the room camera's low view of the floor.
 export const OBJECTS = {
   lamp: { id: "lamp", x: 1418, base: 499, w: 148, h: 175, zone: "lamp" },
   glasses: { id: "glasses", x: 735, base: 499, w: 62, h: 132, zone: "arch-left" },
   hourglass: { id: "hourglass", x: 850, base: 499, w: 52, h: 99, zone: "arch-left" },
-  book: { id: "book", x: 2045, base: 500, w: 175, h: 52, zone: "arch-right" },
+  book: { id: "book", x: 2045, base: 499, w: 175, h: 52, foot: 0.744, zone: "arch-right" },
   pen: { id: "pen", x: 2170, base: 501, w: 86, h: 23, zone: "arch-right" },
-  deck: { id: "deck", x: 690, base: 1488, w: 66, h: 45, zone: "floor" },
-  plane: { id: "plane", x: 2335, base: 1500, w: 128, h: 71, zone: "floor" },
+  deck: { id: "deck", x: 690, base: 1488, w: 84, h: 57, foot: 0.906, squash: 0.5, reflect: true, zone: "floor" },
+  plane: { id: "plane", x: 2335, base: 1494, w: 132, h: 73, foot: 0.918, squash: 0.72, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
 };

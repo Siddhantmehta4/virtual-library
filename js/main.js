@@ -678,8 +678,16 @@ function makeObject(spec, label, onClick) {
   const tint = el("span", "tint");
   tint.style.setProperty("--src", `url("${src}")`);
   node.append(el("span", "contact"), img, tint);
-  const w = spec.w, h = spec.h;
-  Object.assign(node.style, { left: `${spec.x - w / 2}px`, top: `${spec.base - h}px`, width: `${w}px`, height: `${h}px` });
+  const w = spec.w, sq = spec.squash || 1, h = spec.h * sq;
+  const foot = spec.foot || 1;
+  Object.assign(node.style, { left: `${spec.x - w / 2}px`, top: `${spec.base - h * foot}px`, width: `${w}px`, height: `${h}px` });
+  node.style.setProperty("--foot", `${(1 - foot) * 100}%`);
+  if (spec.reflect) {
+    const ref = el("img", "reflection");
+    ref.src = src;
+    ref.alt = "";
+    node.insertBefore(ref, img);
+  }
   node.addEventListener("pointerenter", () => {
     if (state.zoom && !node.closest(".bay.zoomed")) return;
     labelFor(node, text());
