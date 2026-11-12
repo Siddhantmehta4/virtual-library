@@ -5,7 +5,7 @@ const LIBRARY_TAB = 'Library';
 const RECS_TAB = 'Recommendations';
 const GENRES = ['Philosophy', 'Fiction', 'History', 'Self-Help', 'Non-Fiction', 'Biography',
   'Art & Creativity', 'Sci-Fi', 'Religion', 'Comedy', 'Finance'];
-const STATUSES = ['read', 'reading', 'abandoned'];
+const STATUSES = ['read', 'reading', 'unfinished'];
 const BOOK_FIELDS = ['title', 'author', 'genre', 'status', 'date_finished', 'rating', 'thoughts',
   'themes', 'emotion', 'favorite', 'isbn', 'cover_override', 'recommended_by'];
 

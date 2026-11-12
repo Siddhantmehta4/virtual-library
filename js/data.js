@@ -14,6 +14,10 @@ function hash(s) {
   return h >>> 0;
 }
 
+// Spines are widened for the screen so every book is easy to point at.
+// Thicker books stay thicker; the thinnest still gets a comfortable target.
+const spineWidth = (raw) => Math.round(Math.max(36, Math.min(78, (raw || 30) * 1.45 + 10)));
+
 function normalizeBook(b) {
   return {
     kind: "book",
@@ -40,7 +44,7 @@ function normalizeBook(b) {
     ink: b.ink || "#faf7f0",
     face: b.face || "serif",
     caps: !!b.caps,
-    width: b.width || 30,
+    width: spineWidth(b.width),
     height: b.height || 220,
     lean: b.lean || 0,
     depth: b.depth || 0,
@@ -71,7 +75,7 @@ function normalizeRec(r) {
     ink: r.ink || "#faf7f0",
     face: "serif",
     caps: false,
-    width: r.width || 22 + (h % 16),
+    width: spineWidth(r.width || 22 + (h % 16)),
     height: r.height || 206 + (h % 30),
     lean: 0,
     depth: 0,

@@ -206,7 +206,7 @@ function userFields(b: any) {
     title: clean(b.title),
     author: clean(b.author),
     genre: canonGenre(b.genre),
-    status: ["reading", "abandoned"].includes(clean(b.status)?.toLowerCase() ?? "")
+    status: ["reading", "unfinished"].includes(clean(b.status)?.toLowerCase() ?? "")
       ? clean(b.status)!.toLowerCase()
       : "read",
     date_finished: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
@@ -301,7 +301,7 @@ async function handle(req: Request) {
     const status = results.get(b.row) ?? {};
     results.set(b.row, status);
     const base = userFields(b);
-    const shelfNote = !base.genre ? "⚠ pick a genre from the list" : base.status === "abandoned" ? "✓ in the secret shelf" : "✓ on shelf";
+    const shelfNote = !base.genre ? "⚠ pick a genre from the list" : base.status === "unfinished" ? "✓ in the secret shelf" : "✓ on shelf";
     if (!needsEnrich(b, ex.get(b.key))) { keep.push(base); status.sync_status = shelfNote; continue; }
     if (budget <= 0) { status.sync_status = "⏳ queued for next sync"; continue; }
     budget--;

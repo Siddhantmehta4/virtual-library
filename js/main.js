@@ -35,7 +35,7 @@ function assignBooks(books, recs) {
   const byGenre = new Map(state.bays.map((b) => [b.genre.toLowerCase(), b]));
   state.unsorted = [];
   for (const book of books) {
-    if (book.status === "abandoned") continue;
+    if (book.status === "unfinished") continue;
     const bay = byGenre.get(genreKey(book.genre));
     if (bay && bay.genre !== "Recommended") bay.books.push(book);
     else state.unsorted.push(book);
@@ -222,7 +222,7 @@ function fillBay(bay, all) {
     stack.addEventListener("click", (e) => { e.stopPropagation(); openZoom(bay); });
     row.append(stack);
   }
-  row.style.width = all ? `${Math.max(total + 16, bay.w)}px` : "";
+  row.style.width = all ? `${Math.max(total + 16, bayWindow(bay).w)}px` : "";
   bay.scroller.scrollLeft = 0;
   syncPerspective(bay);
 }
@@ -230,7 +230,7 @@ function fillBay(bay, all) {
 function syncPerspective(bay) {
   const s = bay.scroller;
   s.style.perspective = `${PERSPECTIVE}px`;
-  s.style.perspectiveOrigin = `${EYE.x - bay.x + s.scrollLeft}px ${EYE.y - (bay.top - LIFT)}px`;
+  s.style.perspectiveOrigin = `${EYE.x - bayWindow(bay).x + s.scrollLeft}px ${EYE.y - (bay.top - LIFT)}px`;
   if (state.zoom === bay) {
     const max = s.scrollWidth - s.clientWidth;
     bay.el.classList.toggle("fade-l", s.scrollLeft > 4);
@@ -252,14 +252,32 @@ function overviewTransform() {
   return { s, tx, ty };
 }
 
+// Zoom so the shelf is tall enough for books to be easy to pick, even on a phone.
+// If that makes the bay wider than the screen, only a window of it is shown and the books scroll.
 function zoomTransform(bay) {
   const vw = innerWidth, vh = innerHeight;
-  const head = 90;
+  const head = 100;
   const h = bay.base - bay.top + LIFT;
-  const s = Math.min((vw * 0.86) / bay.w, ((vh - head) * 0.8) / h, 3);
+  const byHeight = ((vh - head) * 0.62) / h;
+  const byWidth = (vw * 0.9) / bay.w;
+  const s = Math.min(Math.max(byWidth, Math.min(byHeight, 2.4)), 3);
   const tx = vw / 2 - (bay.x + bay.w / 2) * s;
   const ty = head + (vh - head) / 2 - (bay.top - LIFT + h / 2) * s;
   return { s, tx, ty };
+}
+
+// The visible part of a bay while zoomed: the whole bay, or a centered window on narrow screens.
+function bayWindow(bay) {
+  if (state.zoom !== bay) return { x: bay.x, w: bay.w };
+  const s = zoomTransform(bay).s;
+  const w = Math.min(bay.w, (innerWidth * 0.94) / s);
+  return { x: bay.x + (bay.w - w) / 2, w };
+}
+
+function sizeBayBox(bay) {
+  const win = bayWindow(bay);
+  bay.el.style.left = `${win.x}px`;
+  bay.el.style.width = `${win.w}px`;
 }
 
 function applyCamera(t) {
@@ -285,7 +303,8 @@ function placeExtensions(t) {
 
 function placeCurtain(bay) {
   const pad = 10;
-  const x0 = bay.x - pad, x1 = bay.x + bay.w + pad;
+  const win = bayWindow(bay);
+  const x0 = win.x - pad, x1 = win.x + win.w + pad;
   const y0 = bay.top - pad, y1 = bay.base + 28;
   const big = 500;
   const parts = $("curtain").children;
@@ -306,6 +325,7 @@ function openZoom(bay) {
   if (state.zoom) closeZoom(true);
   hideCard();
   state.zoom = bay;
+  sizeBayBox(bay);
   fillBay(bay, true);
   bay.el.classList.add("zoomed");
   placeCurtain(bay);
@@ -323,6 +343,7 @@ function closeZoom(quick) {
   if (!bay) return;
   state.zoom = null;
   hideCard();
+  sizeBayBox(bay);
   bay.el.classList.remove("zoomed", "fade-l", "fade-r");
   fillBay(bay, false);
   $("zoomHead").classList.remove("on");
@@ -556,7 +577,12 @@ let resizeTimer = 0;
 addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    applyCamera(state.zoom ? zoomTransform(state.zoom) : overviewTransform());
+    if (state.zoom) {
+      sizeBayBox(state.zoom);
+      placeCurtain(state.zoom);
+      syncPerspective(state.zoom);
+      applyCamera(zoomTransform(state.zoom));
+    } else applyCamera(overviewTransform());
   }, 120);
 });
 
