@@ -627,6 +627,21 @@ addEventListener("keydown", (e) => {
 });
 $("detailDim").addEventListener("click", closeDetail);
 
+// first-timer hint in the corner
+const helpBtn = $("help");
+helpBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const open = !helpBtn.classList.contains("open");
+  helpBtn.classList.toggle("open", open);
+  $("helpNote").classList.toggle("on", open);
+  helpBtn.setAttribute("aria-expanded", String(open));
+});
+addEventListener("click", () => {
+  helpBtn.classList.remove("open");
+  $("helpNote").classList.remove("on");
+  helpBtn.setAttribute("aria-expanded", "false");
+});
+
 let resizeTimer = 0;
 addEventListener("resize", () => {
   clearTimeout(resizeTimer);
@@ -653,7 +668,10 @@ async function boot() {
     const [{ books, recs }] = await Promise.all([loadLibrary(), photoReady]);
     assignBooks(books, recs);
     buildRoom();
+    const n = books.filter((b) => b.status !== "unfinished").length;
+    $("volumes").textContent = `${n} ${n === 1 ? "volume" : "volumes"}`;
     document.body.classList.add("ready");
+    setTimeout(() => $("inscription").classList.add("settled"), 4500);
   } catch (err) {
     console.error(err);
     $("status").textContent = "The library is closed for a moment. Try again shortly.";

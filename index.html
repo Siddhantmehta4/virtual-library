@@ -4,11 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sid's Library</title>
-  <meta name="description" content="A personal library: every book I've read, on one walnut bookcase.">
+  <meta name="description" content="Welcome to my library: every book I've read, on one walnut bookcase.">
   <meta property="og:title" content="Sid's Library">
-  <meta property="og:description" content="A personal library: every book I've read, on one walnut bookcase.">
+  <meta property="og:description" content="Welcome to my library: every book I've read, on one walnut bookcase.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://siddhantmehta4.github.io/virtual-library/">
+  <meta property="og:image" content="https://siddhantmehta4.github.io/virtual-library/assets/preview.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://siddhantmehta4.github.io/virtual-library/assets/preview.jpg">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M6 28V12a10 10 0 0 1 20 0v16z' fill='%233b2416' stroke='%23c9a96a' stroke-width='2'/%3E%3Crect x='10' y='17' width='3' height='10' fill='%23a33'/%3E%3Crect x='14' y='15' width='4' height='12' fill='%23ddd3bb'/%3E%3Crect x='19' y='18' width='3' height='9' fill='%2335506a'/%3E%3C/svg%3E">
   <meta name="theme-color" content="#3a3522">
   <link rel="preload" as="image" href="assets/room.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,6 +31,10 @@
       <img class="photo-ext wall" id="extWall" src="assets/room-wall.jpg" width="2912" height="849" alt="" aria-hidden="true">
       <img class="photo-ext floor" id="extFloor" src="assets/room-floor.jpg" width="2912" height="869" alt="" aria-hidden="true">
       <div class="depth" id="depth" aria-hidden="true"></div>
+      <div class="inscription" id="inscription">
+        <h1 class="welcome">Welcome to my library</h1>
+        <p class="volumes" id="volumes"></p>
+      </div>
       <div class="bays" id="bays" aria-label="Bookcase"></div>
       <div class="curtain" id="curtain" aria-hidden="true"><div></div><div></div><div></div><div></div></div>
     </div>
@@ -44,6 +54,9 @@
   </section>
 
   <div class="hover-card" id="hoverCard" role="tooltip"></div>
+
+  <button class="help" id="help" type="button" aria-label="How to explore" aria-expanded="false">?</button>
+  <div class="help-note" id="helpNote" role="note">Hover anything brass, pixel, or framed.</div>
 
   <script type="module" src="js/main.js"></script>
 </body>
