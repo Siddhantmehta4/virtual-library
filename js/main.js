@@ -124,14 +124,16 @@ function bookEl(b, bay, index) {
 
 // ---------- hover card ----------
 let cardTimer = 0;
-function placeCard(anchor) {
+function placeCard(anchor, inside = false) {
   const card = $("hoverCard");
   cardTimer = setTimeout(() => {
     const r = anchor.getBoundingClientRect();
     card.classList.add("on");
     const cw = card.offsetWidth, ch = card.offsetHeight;
     const left = clamp(r.left + r.width / 2 - cw / 2, 10, innerWidth - cw - 10);
-    let top = r.top - ch - 12;
+    // genre cards sit inside their own bay, in the empty space above the books
+    const headroom = inside ? (LIFT / IMG.h) * $("stage").getBoundingClientRect().height : 0;
+    let top = inside ? r.top + headroom + 8 : r.top - ch - 12;
     if (top < 10) top = r.bottom + 12;
     card.style.left = `${left}px`;
     card.style.top = `${top}px`;
@@ -163,7 +165,7 @@ function showBayCard(anchor, bay) {
   card.append(el("p", "hc-title", bay.genre));
   const n = bay.books.length;
   card.append(el("p", "hc-bits", `${n} ${n === 1 ? "book" : "books"} · click to look closer`));
-  placeCard(anchor);
+  placeCard(anchor, true);
 }
 function hideCard() {
   clearTimeout(cardTimer);
