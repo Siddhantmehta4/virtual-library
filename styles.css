@@ -239,7 +239,7 @@ div.obj { cursor: default; }
   white-space: nowrap;
   color: #dcc690;
   text-shadow: 0 -0.06em 0 rgba(0, 0, 0, 0.85), 0 0.06em 0 rgba(255, 236, 190, 0.18);
-  transform: translateY(0.04em);
+  transform: translateY(0.13em);
 }
 
 .depth {
