@@ -1054,3 +1054,6 @@ div.obj { cursor: default; }
   .rec-sheet { transform: none; clip-path: none; }
   .slab { animation: none; opacity: 1; }
 }
+
+/* scenery objects: no hover, no clicks */
+.obj.still { pointer-events: none; cursor: default; }

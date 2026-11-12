@@ -677,8 +677,13 @@ function labelFor(anchor, text) {
 }
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
+// Only these objects respond for now; the rest are scenery.
+const CLICKABLE = new Set(["glasses", "deck"]);
+
 function makeObject(spec, label, onClick) {
-  const node = el(onClick ? "button" : "div", `obj obj-${spec.id} zone-${spec.zone}`);
+  const live = CLICKABLE.has(spec.id);
+  if (!live) onClick = null;
+  const node = el(onClick ? "button" : "div", `obj obj-${spec.id} zone-${spec.zone}${live ? "" : " still"}`);
   if (onClick) node.type = "button";
   const text = () => (typeof label === "function" ? label() : label);
   node.setAttribute("aria-label", text());
@@ -708,6 +713,7 @@ function makeObject(spec, label, onClick) {
     ref.alt = "";
     node.insertBefore(ref, img);
   }
+  if (!live) return node;
   node.addEventListener("pointerenter", () => {
     if (state.zoom && !node.closest(".bay.zoomed")) return;
     labelFor(node, text());
