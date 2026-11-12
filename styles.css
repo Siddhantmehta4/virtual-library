@@ -77,17 +77,18 @@ body.ready .bays { opacity: 1; }
   opacity: 0;
   transition: opacity 1.4s ease;
 }
-body.ready .wall-title { opacity: 0.72; }
+body.ready .wall-title { opacity: 0.8; }
 .welcome {
   margin: 0;
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 700;
   line-height: 0.98;
-  color: #3a2416;
-  text-shadow: 0 2px 1px rgba(255, 248, 225, 0.22), 0 10px 22px rgba(20, 14, 6, 0.32);
+  color: #f4efe4;
+  text-shadow: 0 3px 2px rgba(20, 14, 6, 0.28), 0 12px 26px rgba(20, 14, 6, 0.38);
 }
-.wall-title.side .welcome { font-size: 108px; }
+.wall-title.side { display: flex; flex-direction: column; }
+.wall-title.side .welcome { flex: 1; display: flex; flex-direction: column; justify-content: space-between; font-size: 108px; }
 .wall-title.side .welcome span { display: block; }
 .wall-title.top .welcome { font-size: 190px; color: #eadcb8; text-shadow: 0 10px 22px rgba(10, 8, 4, 0.5); }
 .wall-title.top .volumes { color: #eadcb8; }
@@ -96,9 +97,10 @@ body.ready .wall-title { opacity: 0.72; }
   font-weight: 700;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: #3a2416;
+  color: #f4efe4;
+  text-shadow: 0 6px 16px rgba(20, 14, 6, 0.4);
 }
-.wall-title.side .volumes { margin: 36px 0 0; font-size: 30px; }
+.wall-title.side .volumes { margin: 54px 0 0; font-size: 30px; }
 .wall-title.top .volumes { margin: 28px 0 0; font-size: 42px; }
 
 /* ---------- pixel objects ---------- */

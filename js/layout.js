@@ -66,7 +66,7 @@ export const GENRE_ALIASES = {
 
 // The title on the wall: down the right-hand wall on landscape screens, above the case on phones.
 export const TITLE = {
-  side: { x: 2440, w: 430, y: 360 },
+  side: { x: 2440, w: 430, y: 440, h: 860 },
   top: { x: 0, w: 2912, y: -400 },
 };
 

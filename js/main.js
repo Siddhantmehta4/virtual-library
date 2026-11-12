@@ -635,7 +635,7 @@ function placeTitle() {
   t.classList.toggle("side", side);
   t.classList.toggle("top", !side);
   const box = side ? TITLE.side : TITLE.top;
-  Object.assign(t.style, { left: `${box.x}px`, width: `${box.w}px`, top: `${box.y}px` });
+  Object.assign(t.style, { left: `${box.x}px`, width: `${box.w}px`, top: `${box.y}px`, height: box.h ? `${box.h}px` : "" });
 }
 
 // ---------- pixel objects ----------
