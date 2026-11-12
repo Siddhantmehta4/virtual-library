@@ -586,6 +586,25 @@ div.obj { cursor: default; }
 }
 .hc-author { font-family: var(--font-book); font-style: italic; font-size: 16px; margin: 6px 0 5px !important; color: #4a3b2a; }
 .hc-bits { margin-top: 5px !important; }
+/* genre hover: a small card in the title's lettering */
+.hover-card.bay-card { width: auto; max-width: 220px; padding: 6px 12px 7px; }
+.hover-card.bay-card .hc-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 17px;
+  margin: 0 !important;
+  padding: 0;
+  border: 0;
+}
+.hover-card.bay-card .hc-bits {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variant: normal;
+  font-size: 13px;
+  letter-spacing: 0;
+  margin-top: 1px !important;
+}
 .hover-card.label { width: auto; max-width: 290px; padding: 9px 15px 10px; }
 .hc-line { font-family: var(--font-book); font-style: italic; font-size: 17px; line-height: 1.25; }
 

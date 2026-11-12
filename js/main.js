@@ -141,7 +141,7 @@ function showBookCard(anchor, b) {
   clearTimeout(cardTimer);
   const card = $("hoverCard");
   card.innerHTML = "";
-  card.classList.remove("label");
+  card.classList.remove("label", "bay-card");
   let meta = "";
   if (b.kind === "rec") meta = `Recommended by ${b.recommender}`;
   else if (b.status === "reading") meta = "Currently reading";
@@ -159,6 +159,7 @@ function showBayCard(anchor, bay) {
   const card = $("hoverCard");
   card.innerHTML = "";
   card.classList.remove("label");
+  card.classList.add("bay-card");
   card.append(el("p", "hc-title", bay.genre));
   const n = bay.books.length;
   card.append(el("p", "hc-bits", `${n} ${n === 1 ? "book" : "books"} · click to look closer`));
@@ -658,6 +659,7 @@ function labelFor(anchor, text) {
   clearTimeout(cardTimer);
   const card = $("hoverCard");
   card.innerHTML = "";
+  card.classList.remove("bay-card");
   card.classList.add("label");
   card.append(el("p", "hc-line", text));
   placeCard(anchor);
