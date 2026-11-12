@@ -48,8 +48,14 @@ function assignBooks(books, recs) {
 }
 
 // ---------- one book ----------
+const CLOTHS = ["cloth-black", "cloth-linen", "cloth-weave"];
 function spineFaces(b) {
   const spine = el("span", `spine f-${b.face} fin-${b.finish}`);
+  if (b.finish === "cloth") {
+    let h = 0;
+    for (const c of String(b.id)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    spine.style.setProperty("--tex", `url("assets/tex/${CLOTHS[h % CLOTHS.length]}.jpg")`);
+  }
   if (b.cover) {
     const strip = el("span", "strip");
     strip.style.backgroundImage = `url("${b.cover}")`;
@@ -158,6 +164,15 @@ function hideCard() {
   cardTimer = setTimeout(() => $("hoverCard").classList.remove("on"), 60);
 }
 
+// ---------- brass plates ----------
+// The plate is a real photo; the name is set in its band, shrunk to fit long names.
+function engrave(text, room) {
+  const span = el("span", "engraved", text);
+  const fs = Math.min(11, room / (text.length * 0.78 + 1));
+  span.style.fontSize = `${fs}px`;
+  return span;
+}
+
 // ---------- the room ----------
 function buildRoom() {
   const layer = $("bays");
@@ -182,7 +197,8 @@ function buildRoom() {
     bay.row = row;
     layer.append(box);
 
-    const plate = el("button", "plate", bay.genre);
+    const plate = el("button", "plate");
+    plate.append(engrave(bay.genre, 104));
     plate.type = "button";
     plate.style.left = `${bay.x + bay.w / 2}px`;
     plate.style.top = `${bay.board}px`;
@@ -222,7 +238,7 @@ function fillBay(bay, all) {
       const lying = el("span", "lying");
       lying.style.width = `${b.height * BOOK_K * 0.94}px`;
       lying.style.height = `${Math.max(9, b.width * BOOK_K)}px`;
-      lying.style.background = b.spine;
+      lying.style.backgroundColor = b.spine;
       lying.style.marginRight = `${(j % 2) * 6}px`;
       stack.append(lying);
     });
@@ -292,19 +308,20 @@ function applyCamera(t) {
   if (!state.zoom) placeExtensions(t);
 }
 
-// When the screen is taller than the photo (phones), continue the wall and floor
-// by stretching thin strips of the photo's own top and bottom edges.
+// On tall screens the room continues above and below the photo: real wall and floor
+// (assets/room-wall.jpg, room-floor.jpg) inside the stage, then plain colour past those.
+const WALL_UP = 810, FLOOR_DOWN = 814;
 function placeExtensions(t) {
-  const w = IMG.w * t.s, h = IMG.h * t.s;
+  const w = IMG.w * t.s;
   const top = $("extTop"), bot = $("extBottom");
   for (const ext of [top, bot]) {
     ext.style.left = `${t.tx}px`;
     ext.style.width = `${w}px`;
   }
   const vh = innerHeight;
-  top.style.top = `${t.ty - vh}px`;
+  top.style.top = `${t.ty - WALL_UP * t.s - vh}px`;
   top.style.height = `${vh + 2}px`;
-  bot.style.top = `${t.ty + h - 2}px`;
+  bot.style.top = `${t.ty + (IMG.h + FLOOR_DOWN) * t.s - 2}px`;
   bot.style.height = `${vh}px`;
 }
 
@@ -313,7 +330,7 @@ function placeCurtain(bay) {
   const win = bayWindow(bay);
   const x0 = win.x - pad, x1 = win.x + win.w + pad;
   const y0 = bay.top - pad, y1 = bay.base + 28;
-  const big = 500;
+  const big = 1400;
   const parts = $("curtain").children;
   const rects = [
     [-big, -big, IMG.w + big * 2, y0 + big],
@@ -338,7 +355,7 @@ function openZoom(bay) {
   placeCurtain(bay);
   $("scene").classList.add("zooming");
   applyCamera(zoomTransform(bay));
-  $("zoomPlate").textContent = bay.genre;
+  $("zoomPlate").replaceChildren(engrave(bay.genre, 150));
   const n = bay.books.length;
   $("zoomCount").textContent = `${n} ${n === 1 ? "book" : "books"}`;
   $("zoomHead").classList.add("on");
