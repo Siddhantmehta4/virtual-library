@@ -168,7 +168,7 @@ function hideCard() {
 // The plate is a real photo; the name is set in its band, shrunk to fit long names.
 function engrave(text, room) {
   const span = el("span", "engraved", text);
-  const fs = Math.min(19, room / (text.length * 0.64 + 0.6));
+  const fs = Math.min(13, room / (text.length * 0.7 + 1));
   span.style.fontSize = `${fs}px`;
   return span;
 }
@@ -198,7 +198,7 @@ function buildRoom() {
     layer.append(box);
 
     const plate = el("button", "plate");
-    plate.append(engrave(bay.genre, 186));
+    plate.append(engrave(bay.genre, 132));
     plate.type = "button";
     plate.style.left = `${bay.x + bay.w / 2}px`;
     plate.style.top = `${bay.board}px`;
@@ -265,11 +265,13 @@ function syncPerspective(bay) {
 function overviewTransform() {
   const vw = innerWidth, vh = innerHeight;
   const caseW = CASE.x1 - CASE.x0 + 80;
-  const caseH = CASE.y1 - CASE.y0 + 60;
-  let s = Math.max(vw / IMG.w, vh / IMG.h);
-  s = Math.min(s, vw / caseW, vh / caseH);
+  // fit the case from just above the arches down to the near edge of the rug
+  const viewH = CASE.floor - CASE.y0 + 20;
+  let s = Math.min(vw / caseW, vh / viewH);
+  if (vw >= vh) s = Math.max(s, vw / IMG.w); // landscape: never show past the photo's sides
   let tx = vw / 2 - ((CASE.x0 + CASE.x1) / 2) * s;
-  let ty = vh / 2 - ((CASE.y0 + CASE.y1) / 2) * s;
+  let ty = vh - CASE.floor * s;
+  if (vh / s > viewH) ty = vh / 2 - ((CASE.y0 + CASE.floor) / 2) * s; // tall screens: centre it
   if (IMG.w * s >= vw) tx = clamp(tx, vw - IMG.w * s, 0);
   if (IMG.h * s >= vh) ty = clamp(ty, vh - IMG.h * s, 0);
   return { s, tx, ty };
@@ -383,7 +385,7 @@ function openZoom(bay) {
   placeDepth(bay);
   $("scene").classList.add("zooming");
   applyCamera(zoomTransform(bay));
-  $("zoomPlate").replaceChildren(engrave(bay.genre, 168));
+  $("zoomPlate").replaceChildren(engrave(bay.genre, 140));
   const n = bay.books.length;
   $("zoomCount").textContent = `${n} ${n === 1 ? "book" : "books"}`;
   $("zoomHead").classList.add("on");
