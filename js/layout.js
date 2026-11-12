@@ -39,7 +39,7 @@ export const BOOK_K = 0.6;
 export const BAYS = BAY_GENRES.flatMap((genres, r) =>
   genres.map((genre, c) => ({
     genre,
-    reserve: 0,
+    reserve: genre === "Self-Help" ? 150 : 0,
     row: r,
     col: c,
     lit: ROWS[r].lit,
@@ -70,14 +70,14 @@ export const TITLE = {
   top: { x: 0, w: 2912, y: -400, zone: { x: 0, y: -810, w: 2912, h: 870 } },
 };
 
-// Pixel objects: x = centre, base = where they stand (image px), px = size of one art pixel.
+// Objects: photographed cut-outs. x = centre, base = where they stand, w/h = size (image px).
 export const OBJECTS = {
-  lamp: { id: "lamp", x: 1430, base: 506, px: 7, fps: 170 },
-  glasses: { id: "glasses", x: 705, base: 506, px: 6, fps: 110 },
-  hourglass: { id: "hourglass", x: 885, base: 506, px: 6, fps: 120 },
-  book: { id: "book", x: 2040, base: 506, px: 6, fps: 130 },
-  pen: { id: "pen", x: 2210, base: 508, px: 5 },
-  deck: { id: "deck", x: 640, base: 1518, px: 6, fps: 160 },
-  plane: { id: "plane", x: 2220, base: 1518, px: 6 },
-  plant: { id: "plant", bay: "Self-Help", inset: 62, px: 4, fps: 160 },
+  lamp: { id: "lamp", x: 1430, base: 510, w: 240, h: 284 },
+  glasses: { id: "glasses", x: 715, base: 510, w: 112, h: 240 },
+  hourglass: { id: "hourglass", x: 905, base: 510, w: 100, h: 189 },
+  book: { id: "book", x: 2030, base: 513, w: 360, h: 108 },
+  pen: { id: "pen", x: 2240, base: 516, w: 160, h: 42 },
+  deck: { id: "deck", x: 655, base: 1512, w: 124, h: 85 },
+  plane: { id: "plane", x: 2300, base: 1522, w: 176, h: 97 },
+  plant: { id: "plant", bay: "Self-Help", inset: 82, w: 150, h: 160 },
 };

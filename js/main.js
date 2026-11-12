@@ -1,10 +1,8 @@
 import { loadLibrary } from "./data.js";
 import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITLE } from "./layout.js";
-import * as SPR from "./sprites.js";
 import { ESTATE_URL } from "./config.js";
 
-// Pixel sprites are parked: objects will come back as photographed cut-outs.
-const SHOW_OBJECTS = false;
+const SHOW_OBJECTS = true;
 
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -665,39 +663,25 @@ function labelFor(anchor, text) {
   placeCard(anchor);
 }
 
-function makeObject(spec, sprite, label, onClick) {
-  const P = spec.px;
+// Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
+function makeObject(spec, label, onClick) {
   const node = el(onClick ? "button" : "div", `obj obj-${spec.id}`);
   if (onClick) node.type = "button";
-  node.setAttribute("aria-label", typeof label === "function" ? label() : label);
+  const text = () => (typeof label === "function" ? label() : label);
+  node.setAttribute("aria-label", text());
   const img = el("img");
-  img.src = sprite.frames[0];
+  img.src = `assets/obj/${spec.img || spec.id}.png`;
   img.alt = "";
   img.draggable = false;
-  img.width = sprite.w * P;
-  img.height = sprite.h * P;
   node.append(img);
-  Object.assign(node.style, {
-    left: `${spec.x - (sprite.w * P) / 2}px`,
-    top: `${spec.base - sprite.h * P}px`,
-    width: `${sprite.w * P}px`,
-    height: `${sprite.h * P}px`,
-  });
-  let anim = 0;
-  const start = () => {
-    if (sprite.frames.length < 2 || anim) return;
-    let i = 0;
-    anim = setInterval(() => { i = (i + 1) % sprite.frames.length; img.src = sprite.frames[i]; }, spec.fps || 140);
-  };
-  const stop = () => { clearInterval(anim); anim = 0; img.src = node.dataset.rest || sprite.frames[0]; };
+  const w = spec.w, h = spec.h;
+  Object.assign(node.style, { left: `${spec.x - w / 2}px`, top: `${spec.base - h}px`, width: `${w}px`, height: `${h}px` });
   node.addEventListener("pointerenter", () => {
     if (state.zoom && !node.closest(".bay.zoomed")) return;
-    start();
-    labelFor(node, typeof label === "function" ? label() : label);
+    labelFor(node, text());
   });
-  node.addEventListener("pointerleave", () => { stop(); hideCard(); $("hoverCard").classList.remove("label"); });
+  node.addEventListener("pointerleave", () => { hideCard(); });
   if (onClick) node.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); onClick(node, e); });
-  node.img = img;
   return node;
 }
 
@@ -707,30 +691,30 @@ function buildObjects() {
   const reading = state.books.filter((b) => b.status === "reading");
   const shelved = state.bays.filter((b) => b.genre !== "Recommended").flatMap((b) => b.books);
 
-  layer.append(makeObject(OBJECTS.lamp, SPR.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off")));
-  layer.append(makeObject(OBJECTS.glasses, SPR.glasses, "For the fine print."));
-  layer.append(makeObject(OBJECTS.hourglass, SPR.hourglass, "Time in a bottle."));
-  layer.append(makeObject(OBJECTS.book, SPR.openBook,
+  layer.append(makeObject(OBJECTS.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off")));
+  layer.append(makeObject(OBJECTS.glasses, "For the fine print."));
+  layer.append(makeObject(OBJECTS.hourglass, "Time in a bottle."));
+  layer.append(makeObject(OBJECTS.book,
     () => (reading.length ? `Currently reading: ${reading.map((b) => b.title).join(" · ")}` : "Currently reading: nothing open right now."),
     (node) => { if (reading.length) openDetail(node, reading[0], reading, 0, true); }));
-  layer.append(makeObject(OBJECTS.pen, SPR.pen, "The Key to the Estate",
+  layer.append(makeObject(OBJECTS.pen, "The Key to the Estate",
     () => { if (ESTATE_URL) window.open(ESTATE_URL, "_blank", "noopener"); }));
-  layer.append(makeObject(OBJECTS.deck, SPR.deck, "Pick a card, any card.",
+  layer.append(makeObject(OBJECTS.deck, "Pick a card, any card.",
     (node) => {
       if (!shelved.length) return;
       const i = Math.floor(Math.random() * shelved.length);
       openDetail(node, shelved[i], shelved, i, true);
     }));
-  layer.append(makeObject(OBJECTS.plane, SPR.plane, "Is my shelf missing a gem?"));
+  layer.append(makeObject(OBJECTS.plane, "Is my shelf missing a gem?"));
 
   // the plant lives inside the Self-Help bay so it zooms with it
   const sh = state.bays.find((b) => b.genre === OBJECTS.plant.bay);
   if (sh) {
     const spec = { ...OBJECTS.plant, x: sh.w - OBJECTS.plant.inset, base: sh.base - sh.top + LIFT };
-    sh.el.append(makeObject(spec, SPR.plant, "Looks thirsty."));
+    sh.el.append(makeObject(spec, "Looks thirsty."));
   }
   const glow = $("lampGlow");
-  Object.assign(glow.style, { left: `${OBJECTS.lamp.x - 330}px`, top: `${OBJECTS.lamp.base - 420}px` });
+  Object.assign(glow.style, { left: `${OBJECTS.lamp.x - 330}px`, top: `${OBJECTS.lamp.base - 430}px` });
 }
 
 // ---------- keys, resize, boot ----------

@@ -108,7 +108,7 @@ body.ready .wall-title.faded.peek { opacity: 0.6; transition-duration: 0.5s; }
 .wall-title.side .volumes { margin: 40px 0 0; font-size: 30px; }
 .wall-title.top .volumes { margin: 28px 0 0; font-size: 42px; }
 
-/* ---------- pixel objects ---------- */
+/* ---------- objects (photographed cut-outs) ---------- */
 .objects { position: absolute; inset: 0; pointer-events: none; }
 .obj {
   position: absolute;
@@ -118,19 +118,22 @@ body.ready .wall-title.faded.peek { opacity: 0.6; transition-duration: 0.5s; }
   pointer-events: auto;
   cursor: pointer;
   transform-origin: 50% 100%;
-  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), filter 0.3s ease;
-  filter: drop-shadow(0 6px 5px rgba(0, 0, 0, 0.55));
+  transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.05), filter 0.35s ease;
+  --tone: brightness(0.8) saturate(0.9) sepia(0.12);
+  filter: var(--tone) drop-shadow(0 7px 6px rgba(0, 0, 0, 0.6));
 }
 div.obj { cursor: default; }
-.obj img { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; pointer-events: none; }
-.obj:hover { filter: drop-shadow(0 8px 7px rgba(0, 0, 0, 0.55)) brightness(1.12); }
-.obj-pen:hover { transform: rotate(-9deg) translateY(-6px); transform-origin: 100% 100%; }
-.obj-hourglass:hover { animation: wobble 0.6s ease-in-out infinite; }
-.obj-plane:hover { transform: translateY(-14px) rotate(4deg); }
-.obj-deck:hover, .obj-book:hover, .obj-glasses:hover { transform: translateY(-4px); }
-.obj-lamp:hover { transform: none; }
-@keyframes wobble { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
-.bay .obj-plant { z-index: 2; }
+.obj img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.obj:hover { filter: var(--tone) brightness(1.18) drop-shadow(0 12px 10px rgba(0, 0, 0, 0.55)); transform: translateY(-6px); }
+.obj-lamp { --tone: brightness(0.95) saturate(0.95); }
+.obj-lamp:hover { transform: none; filter: var(--tone) brightness(1.25) drop-shadow(0 0 22px rgba(255, 200, 120, 0.35)); }
+.obj-hourglass:hover { transform: translateY(-6px) rotate(-4deg); }
+.obj-pen { transform-origin: 100% 100%; }
+.obj-pen:hover { transform: rotate(-8deg) translateY(-6px); }
+.obj-plane:hover { transform: translateY(-16px) rotate(3deg); }
+.obj-deck, .obj-plane { --tone: brightness(0.82) saturate(0.85) sepia(0.15); }
+.bay .obj-plant { --tone: brightness(0.92) saturate(0.95); z-index: 2; }
+.obj-plant:hover { transform: rotate(-2deg); }
 .lamp-glow {
   position: absolute;
   width: 660px;
