@@ -38,11 +38,7 @@ button { font: inherit; color: inherit; }
   transition: opacity 0.6s ease;
 }
 .ext-top { background: linear-gradient(#15130b 50%, #3a3522); }
-.ext-bottom {
-  background-image: linear-gradient(rgba(16, 8, 4, 0.2), rgba(16, 8, 4, 0.94) 240px), url("assets/floor-bottom.jpg");
-  background-size: 100% 100%, 100% auto;
-  background-repeat: no-repeat, repeat-y;
-}
+.ext-bottom { background: linear-gradient(#3a2119, #1d100b 160px, #0f0806); }
 .scene.zooming .ext { opacity: 0; }
 .photo {
   position: absolute;

@@ -6,22 +6,22 @@ export const EYE = { x: 1456, y: 816 };
 export const PERSPECTIVE = 3600;
 
 // The bookcase itself, including frame and arches. Keeps it on screen on small displays.
-export const CASE = { x0: 520, x1: 2360, y0: 130, y1: 1410 };
+export const CASE = { x0: 470, x1: 2410, y0: 70, y1: 1450 };
 
 // Inner edges of the three bay columns.
 const COLS = [
-  { x: 565, w: 477 },
-  { x: 1100, w: 652 },
-  { x: 1810, w: 494 },
+  { x: 556, w: 474 },
+  { x: 1098, w: 664 },
+  { x: 1836, w: 490 },
 ];
 
 // Each row: top = underside of the shelf above, base = where books stand,
 // board = vertical center of the shelf's front edge (for the brass plate).
 const ROWS = [
-  { top: 548, base: 728, board: 738, lit: true },
-  { top: 750, base: 924, board: 939, lit: true },
-  { top: 952, base: 1121, board: 1141, lit: true },
-  { top: 1152, base: 1334, board: 1376, lit: false },
+  { top: 524, base: 724, board: 728, lit: true },
+  { top: 746, base: 937, board: 941, lit: true },
+  { top: 960, base: 1150, board: 1155, lit: true },
+  { top: 1182, base: 1382, board: 1418, lit: true },
 ];
 
 // Genre for each bay, row by row, left to right.
