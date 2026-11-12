@@ -163,7 +163,7 @@ function showBayCard(anchor, bay) {
   card.classList.remove("label");
   card.append(el("p", "hc-title", bay.genre));
   const n = bay.books.length;
-  card.append(el("p", "hc-bits", `${n} ${n === 1 ? "book" : "books"}  ·  click to look closer`));
+  card.append(el("p", "hc-bits", `${n} ${n === 1 ? "book" : "books"} · click to look closer`));
   placeCard(anchor);
 }
 function hideCard() {

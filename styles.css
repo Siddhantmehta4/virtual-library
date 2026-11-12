@@ -7,6 +7,7 @@
   --cream: #efe6d4;
   --muted: #b9ae97;
   --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-book: "EB Garamond", Georgia, serif;
   --font-sans: "Karla", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, monospace;
 }
@@ -139,8 +140,6 @@ div.obj { cursor: default; }
   mix-blend-mode: screen;
 }
 .scene.zooming .objects .obj { pointer-events: none; }
-.hover-card.label { width: auto; max-width: 280px; padding: 8px 13px 9px; }
-.hc-line { font-family: var(--font-display); font-style: italic; font-size: 17px; line-height: 1.25; }
 
 /* ---------- help ---------- */
 .help {
@@ -170,9 +169,10 @@ div.obj { cursor: default; }
   max-width: 240px;
   padding: 11px 14px;
   border-radius: 3px;
-  background: url("assets/tex/paper.jpg") center / cover, var(--paper);
-  color: var(--paper-ink);
-  font-family: var(--font-display);
+  background: url("assets/tex/paper-grain.jpg") center / 260px auto, radial-gradient(ellipse at 50% 40%, #f8f2e4, #ece2cb 85%);
+  background-blend-mode: multiply, normal;
+  color: #2e2419;
+  font-family: var(--font-book);
   font-style: italic;
   font-size: 17px;
   line-height: 1.3;
@@ -479,12 +479,16 @@ div.obj { cursor: default; }
 .hover-card {
   position: fixed;
   z-index: 300;
-  width: 248px;
-  padding: 12px 15px 13px;
-  border-radius: 4px;
-  background: url("assets/tex/paper.jpg") center / cover, var(--paper);
-  color: var(--paper-ink);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  width: 250px;
+  padding: 13px 17px 14px;
+  border-radius: 2px;
+  /* ivory card stock: warm base, real paper fibre on top, a faint aged edge */
+  background:
+    url("assets/tex/paper-grain.jpg") center / 260px auto,
+    radial-gradient(ellipse at 50% 40%, #f8f2e4, #ece2cb 85%);
+  background-blend-mode: multiply, normal;
+  color: #2e2419;
+  box-shadow: inset 0 0 0 1px rgba(120, 95, 55, 0.18), 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 14px 34px rgba(0, 0, 0, 0.45);
   opacity: 0;
   transform: translateY(6px);
   pointer-events: none;
@@ -493,14 +497,25 @@ div.obj { cursor: default; }
 .hover-card.on { opacity: 1; transform: translateY(0); }
 .hover-card p { margin: 0; }
 .hc-meta, .hc-bits {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #7a6a52;
+  font-family: var(--font-book);
+  font-variant: small-caps;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: #8a6f4a;
 }
-.hc-title { font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 1.1; margin-top: 5px !important; }
-.hc-author { font-size: 15px; margin: 3px 0 6px !important; color: #4a3d2c; }
+.hc-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 23px;
+  line-height: 1.08;
+  margin-top: 3px !important;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(155, 42, 34, 0.35);
+}
+.hc-author { font-family: var(--font-book); font-style: italic; font-size: 16px; margin: 6px 0 5px !important; color: #4a3b2a; }
+.hc-bits { margin-top: 5px !important; }
+.hover-card.label { width: auto; max-width: 290px; padding: 9px 15px 10px; }
+.hc-line { font-family: var(--font-book); font-style: italic; font-size: 17px; line-height: 1.25; }
 
 /* ---------- zoom header ---------- */
 .zoom-head {
