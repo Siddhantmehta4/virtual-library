@@ -9,32 +9,30 @@
   <meta property="og:description" content="A personal library: every book I've read, on one walnut bookcase.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#2f3420">
+  <meta name="theme-color" content="#3a3522">
+  <link rel="preload" as="image" href="assets/room.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Karla:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="room" id="room">
-    <div class="wall-light" aria-hidden="true"></div>
+  <main class="scene" id="scene">
+    <div class="ext ext-top" id="extTop" aria-hidden="true"></div>
+    <div class="ext ext-bottom" id="extBottom" aria-hidden="true"></div>
     <div class="stage" id="stage">
-      <p class="status" id="status">Taking the books off the cart…</p>
-      <div class="bookcase" id="bookcase" aria-label="Bookcase"></div>
+      <img class="photo" id="photo" src="assets/room.jpg" width="2912" height="1632" alt="A dark walnut bookcase with three arches against an olive green wall">
+      <div class="bays" id="bays" aria-label="Bookcase"></div>
+      <div class="curtain" id="curtain" aria-hidden="true"><div></div><div></div><div></div><div></div></div>
     </div>
-    <div class="floor" aria-hidden="true"></div>
+    <p class="status" id="status" role="status"></p>
   </main>
 
-  <section class="zoom" id="zoom" aria-hidden="true">
-    <header class="zoom-head">
-      <button class="back-btn" id="zoomBack" type="button">← Back to the case</button>
-      <div class="zoom-plate" id="zoomPlate"></div>
-      <span class="zoom-count" id="zoomCount"></span>
-    </header>
-    <div class="rail-wrap" id="railWrap">
-      <div class="rail" id="rail"></div>
-    </div>
-  </section>
+  <header class="zoom-head" id="zoomHead">
+    <button class="back-btn" id="zoomBack" type="button">← Back to the case</button>
+    <div class="zoom-plate" id="zoomPlate"></div>
+    <span class="zoom-count" id="zoomCount"></span>
+  </header>
 
   <section class="detail" id="detail" aria-hidden="true">
     <div class="detail-dim" id="detailDim"></div>

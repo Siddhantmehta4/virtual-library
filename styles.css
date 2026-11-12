@@ -1,10 +1,4 @@
 :root {
-  --wall: #474e2f;
-  --wall-deep: #2f3420;
-  --walnut: #4a2e1c;
-  --walnut-dark: #2a190f;
-  --walnut-light: #6b4529;
-  --cavity: #1f130b;
   --brass-1: #e2c27c;
   --brass-2: #a07a3a;
   --brass-ink: #3a2a12;
@@ -20,215 +14,121 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 body {
-  background: var(--wall-deep);
+  background: linear-gradient(#3a3522 0 50%, #3b2820 50% 100%);
   color: var(--cream);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 button { font: inherit; color: inherit; }
 
-/* ---------- the room ---------- */
-.room {
-  position: relative;
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 16vh 0 0;
-  background:
-    radial-gradient(ellipse 120% 80% at 50% 120%, rgba(0, 0, 0, 0.55), transparent 60%),
-    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(0, 0, 0, 0.35), transparent 70%),
-    var(--wall);
-  overflow: hidden;
-}
-.room::before {
-  /* plaster texture */
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.32;
-  mix-blend-mode: overlay;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-.wall-light {
-  /* warm lamplight falling from above the case */
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 1400px;
-  height: 900px;
-  transform: translateX(-62%);
-  background: radial-gradient(ellipse at 40% 30%, rgba(255, 196, 120, 0.22), rgba(255, 170, 90, 0.08) 40%, transparent 70%);
-  pointer-events: none;
-}
-.floor {
+/* ---------- the room photo ---------- */
+.scene { position: fixed; inset: 0; overflow: hidden; }
+.stage {
   position: absolute;
   left: 0;
-  right: 0;
-  bottom: 0;
-  height: 13vh;
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 160px),
-    linear-gradient(#3a2414, #1c110a);
-  box-shadow: inset 0 14px 24px rgba(0, 0, 0, 0.45);
+  top: 0;
+  transform-origin: 0 0;
+  transition: transform 0.95s cubic-bezier(0.65, 0, 0.25, 1);
 }
-.stage {
-  position: relative;
-  z-index: 1;
-  margin-bottom: 8vh;
-  transition: filter 0.6s ease, transform 0.6s ease;
+.ext {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  transition: opacity 0.6s ease;
 }
-.room.blurred .stage { filter: blur(7px) brightness(0.55); transform: scale(0.985); }
+.ext-top { background: linear-gradient(#15130b 50%, #3a3522); }
+.ext-bottom {
+  background-image: linear-gradient(rgba(16, 8, 4, 0.2), rgba(16, 8, 4, 0.94) 240px), url("assets/floor-bottom.jpg");
+  background-size: 100% 100%, 100% auto;
+  background-repeat: no-repeat, repeat-y;
+}
+.scene.zooming .ext { opacity: 0; }
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+}
+.bays { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease 0.1s; }
+body.ready .bays { opacity: 1; }
 .status {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 8vh;
+  margin: 0;
+  text-align: center;
   font-family: var(--font-display);
   font-style: italic;
   font-size: 22px;
-  color: var(--muted);
-  text-align: center;
-  margin: 30vh 0 0;
+  color: var(--cream);
+  opacity: 0;
 }
+.status.on { opacity: 0.85; }
 
-/* ---------- the bookcase ---------- */
-.bookcase { position: relative; }
-.case-top { position: relative; perspective: 1300px; }
-.case-top-surface {
-  position: absolute;
-  left: -6px;
-  right: -6px;
-  bottom: 0;
-  height: var(--depth);
-  transform-origin: 50% 100%;
-  transform: rotateX(90deg);
-  background:
-    repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.08) 0 3px, transparent 3px 22px),
-    linear-gradient(180deg, #5b3a22, #7a4f2f 70%, #8a5b36);
-}
-.case-body {
-  position: relative;
-  padding: 0 16px;
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 19px),
-    linear-gradient(90deg, var(--walnut-dark), var(--walnut) 6%, var(--walnut-light) 50%, var(--walnut) 94%, var(--walnut-dark));
-  border-top: 8px solid #6e4729;
-  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.5);
-}
-.plinth {
-  height: 22px;
-  margin: 0 -4px;
-  background: linear-gradient(#3b2414, #22140b);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.6);
-}
-
-.shelf, .zshelf {
-  position: relative;
-  padding-bottom: 14px;
-  cursor: zoom-in;
-}
-.cavity {
-  position: absolute;
-  inset: 0 0 14px 0;
-  overflow: hidden;
-  perspective: 1300px;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 9%, transparent 91%, rgba(0, 0, 0, 0.55)),
-    linear-gradient(#140c06, var(--cavity) 40%, #2b1b10);
-}
-.stage3d { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
-.stage3d .book, .stage3d .stack { pointer-events: auto; }
-.back {
+/* ---------- bays ---------- */
+.bay { position: absolute; cursor: zoom-in; }
+.bay.zoomed { cursor: default; z-index: 3; }
+.bay-scroll {
   position: absolute;
   inset: 0;
-  transform: translateZ(calc(var(--depth) * -1));
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 190, 120, 0.06), transparent 70%),
-    linear-gradient(#1a100a, #2d1d12);
+  overflow: hidden;
+  scrollbar-width: none;
 }
-.floor-plank {
+.bay-scroll::-webkit-scrollbar { display: none; }
+.bay.zoomed .bay-scroll { overflow-x: auto; }
+.bay.zoomed.fade-r .bay-scroll { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
+.bay.zoomed.fade-l .bay-scroll { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%); mask-image: linear-gradient(90deg, transparent, #000 10%); }
+.bay.zoomed.fade-l.fade-r .bay-scroll { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.bay-row {
   position: absolute;
   left: 0;
-  right: 0;
   bottom: 0;
-  height: var(--depth);
-  transform-origin: 50% 100%;
-  transform: rotateX(90deg);
-  background:
-    linear-gradient(0deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.55)),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 24px),
-    #6a4429;
-}
-.row {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 0;
+  min-width: 100%;
+  height: 100%;
+  padding: 0 8px;
   display: flex;
   align-items: flex-end;
-  gap: 1px;
+  gap: 1.5px;
   transform-style: preserve-3d;
-  transform: translateZ(calc(var(--depth) * -0.2));
+  transform: translateZ(-34px);
+  pointer-events: none;
 }
-.zshelf .row { left: 60px; right: 60px; gap: 2px; }
-.lip {
-  position: absolute;
-  left: -16px;
-  right: -16px;
-  bottom: 0;
-  height: 14px;
-  background: linear-gradient(#8a5b36, #5f3c23 45%, #3e2615);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.35);
-  z-index: 2;
-}
-.zshelf .lip { left: 0; right: 0; height: 18px; bottom: -4px; }
+.bay-row .book, .bay-row .stack { pointer-events: auto; }
 
-/* brass label plates */
 .plate {
   position: absolute;
-  left: 50%;
-  top: 50%;
   transform: translate(-50%, -50%);
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
   padding: 3px 12px 2px;
   border: 0;
   border-radius: 2px;
   background: linear-gradient(180deg, var(--brass-1), var(--brass-2));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 1px 3px rgba(0, 0, 0, 0.7);
   color: var(--brass-ink);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 10px;
+  line-height: 1.2;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
   cursor: zoom-in;
+  filter: brightness(0.82);
 }
-.plate-more { opacity: 0.7; }
-.plate::after {
-  content: attr(data-hint);
+
+/* zoom curtain: dims and softens everything except the chosen bay */
+.curtain > div {
   position: absolute;
-  left: 50%;
-  top: calc(100% + 8px);
-  transform: translate(-50%, -4px);
-  padding: 4px 9px;
-  border-radius: 3px;
-  background: var(--paper);
-  color: var(--paper-ink);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  letter-spacing: 0;
-  text-transform: none;
+  background: rgba(8, 6, 3, 0.82);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  z-index: 20;
+  transition: opacity 0.7s ease;
 }
-.plate:hover::after, .plate:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+.scene.zooming .curtain > div { opacity: 1; pointer-events: auto; cursor: zoom-out; }
 
-/* overflow stack in the overview */
+/* overflow stack */
 .stack {
   position: relative;
   flex: 0 0 auto;
@@ -237,8 +137,8 @@ button { font: inherit; color: inherit; }
   align-items: flex-end;
   justify-content: flex-end;
   align-self: stretch;
-  padding: 0 4px 0 0;
   margin-left: auto;
+  padding: 0 4px 0 0;
   border: 0;
   background: none;
   cursor: zoom-in;
@@ -246,16 +146,9 @@ button { font: inherit; color: inherit; }
 .lying {
   display: block;
   border-radius: 1px;
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.4), inset 0 3px 3px -2px rgba(255, 255, 255, 0.25);
+  filter: brightness(0.8) saturate(0.85);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.45), inset 0 4px 4px -3px rgba(255, 200, 140, 0.35), 0 2px 3px rgba(0, 0, 0, 0.5);
 }
-.empty-note {
-  font-family: var(--font-display);
-  font-style: italic;
-  color: rgba(239, 230, 212, 0.35);
-  font-size: 13px;
-  margin: 0 auto 10px;
-}
-.empty-note.big { font-size: 22px; margin-bottom: 30%; }
 
 /* ---------- books ---------- */
 .book {
@@ -399,6 +292,19 @@ button { font: inherit; color: inherit; }
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
+
+/* light from the LED strip above lit rows; the bottom row sits in shadow */
+.light { position: absolute; inset: 0; pointer-events: none; }
+.lit .light {
+  background: linear-gradient(180deg, rgba(255, 178, 100, 0.34), rgba(255, 160, 80, 0.1) 22%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.42) 100%);
+}
+.unlit .light {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55));
+}
+.bay .spine { filter: brightness(0.86) saturate(0.88); box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.45), 2px 0 4px rgba(0, 0, 0, 0.45); }
+.lit .pages { filter: brightness(0.72) sepia(0.35); }
+.unlit .pages { filter: brightness(0.4) sepia(0.2); }
+
 /* ---------- hover card ---------- */
 .hover-card {
   position: fixed;
@@ -426,30 +332,24 @@ button { font: inherit; color: inherit; }
 .hc-title { font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 1.1; margin-top: 5px !important; }
 .hc-author { font-size: 15px; margin: 3px 0 6px !important; color: #4a3d2c; }
 
-/* ---------- zoomed shelf ---------- */
-.zoom {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.5s ease;
-}
-.zoom.on { opacity: 1; pointer-events: auto; }
+/* ---------- zoom header ---------- */
 .zoom-head {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
   padding: 22px 20px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
+.zoom-head.on { opacity: 1; pointer-events: auto; transform: none; transition-delay: 0.35s; }
 .back-btn {
   position: absolute;
   left: 20px;
@@ -461,7 +361,7 @@ button { font: inherit; color: inherit; }
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 .back-btn:hover { opacity: 1; }
 .zoom-plate {
@@ -476,24 +376,9 @@ button { font: inherit; color: inherit; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 .zoom-count { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
-.rail-wrap {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  padding: 40px 0 30px;
-  transform: translateY(14px);
-  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.zoom.on .rail-wrap { transform: none; }
-.rail-wrap::-webkit-scrollbar { display: none; }
-.rail-wrap.dragging { cursor: grabbing; }
-.rail-wrap.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
-.rail-wrap.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%); mask-image: linear-gradient(90deg, transparent, #000 12%); }
-.rail-wrap.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
-.zshelf {
-  cursor: default;
-  background: linear-gradient(90deg, var(--walnut-dark), var(--walnut-light) 50%, var(--walnut-dark));
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+@media (max-width: 640px) {
+  .zoom-head { flex-wrap: wrap; padding-top: 58px; }
+  .back-btn { top: 22px; }
 }
 
 /* ---------- pulled-out book ---------- */
@@ -606,11 +491,6 @@ button { font: inherit; color: inherit; }
 .p-btn:hover:not(:disabled) { border-color: var(--brass-1); color: var(--brass-1); }
 .p-btn:disabled { opacity: 0.3; cursor: default; }
 .p-btn.shelve { margin-left: auto; background: linear-gradient(180deg, var(--brass-1), var(--brass-2)); color: var(--brass-ink); border-color: transparent; }
-
-@media (max-width: 640px) {
-  .zoom-head { flex-wrap: wrap; padding-top: 58px; }
-  .back-btn { top: 22px; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; }

@@ -3,6 +3,9 @@
 
 const LIBRARY_TAB = 'Library';
 const RECS_TAB = 'Recommendations';
+const GENRES = ['Philosophy', 'Fiction', 'History', 'Self-Help', 'Non-Fiction', 'Biography',
+  'Art & Creativity', 'Sci-Fi', 'Religion', 'Comedy', 'Finance'];
+const STATUSES = ['read', 'reading', 'abandoned'];
 const BOOK_FIELDS = ['title', 'author', 'genre', 'status', 'date_finished', 'rating', 'thoughts',
   'themes', 'emotion', 'favorite', 'isbn', 'cover_override', 'recommended_by'];
 
@@ -11,6 +14,7 @@ function onOpen() {
     .createMenu('Library')
     .addItem('Sync now', 'syncLibrary')
     .addItem('Turn on automatic sync (every 5 min)', 'setupAutoSync')
+    .addItem('Update dropdowns', 'setupDropdowns')
     .addToUi();
 }
 
@@ -22,6 +26,23 @@ function setupAutoSync() {
   toast_('Automatic sync is on: every 5 minutes.');
 }
 
+// Genre and status dropdowns on the Library tab, matching the bookcase's bays.
+function setupDropdowns() {
+  const lib = SpreadsheetApp.getActive().getSheetByName(LIBRARY_TAB);
+  if (!lib) return;
+  const cols = headerMap_(lib.getRange(1, 1, 1, lib.getLastColumn()).getValues()[0]);
+  const rows = Math.max(lib.getMaxRows() - 1, 1);
+  const set = (field, list) => {
+    if (cols[field] === undefined) return;
+    const rule = SpreadsheetApp.newDataValidation().requireValueInList(list, true).setAllowInvalid(false).build();
+    lib.getRange(2, cols[field] + 1, rows, 1).setDataValidation(rule);
+  };
+  set('genre', GENRES);
+  set('status', STATUSES);
+  PropertiesService.getScriptProperties().setProperty('DROPDOWNS_V', '2');
+  toast_('Dropdowns updated.');
+}
+
 function syncLibrary() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(1000)) return; // a sync is already running
@@ -31,6 +52,7 @@ function syncLibrary() {
     const token = props.getProperty('SYNC_TOKEN');
     if (!url || !token) throw new Error('Missing SUPABASE_URL or SYNC_TOKEN in Script Properties.');
 
+    if (props.getProperty('DROPDOWNS_V') !== '2') setupDropdowns();
     const ss = SpreadsheetApp.getActive();
     const tz = ss.getSpreadsheetTimeZone();
     const lib = ss.getSheetByName(LIBRARY_TAB);
@@ -89,6 +111,10 @@ function syncLibrary() {
         if (libCols[f] === undefined) return;
         const cell = lib.getRange(r.row, libCols[f] + 1);
         if (String(cell.getValue()).trim() === '') cell.setValue(s[f]);
+      });
+      const fix = r.replace || {};
+      Object.keys(fix).forEach(f => {
+        if (libCols[f] !== undefined) lib.getRange(r.row, libCols[f] + 1).setValue(fix[f]);
       });
     });
 

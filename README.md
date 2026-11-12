@@ -13,6 +13,8 @@ A personal library: every book I've read, on one walnut bookcase.
 ## Files
 
 - `index.html` – page structure
+- `assets/room.jpg` – the room photo the bookcase is built on
+- `js/layout.js` – where each bay sits in the photo, and which genre lives there
 - `styles.css` – the room, bookcase and books
 - `js/config.js` – Supabase URL and public key
 - `js/data.js` – loads books and approved recommendations

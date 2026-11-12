@@ -13,10 +13,25 @@ const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const AI_MODEL = "claude-haiku-5-5";
 const MAX_ENRICH = 8; // new books processed per run; the rest wait for the next sync
 const UA = { "User-Agent": "VirtualLibrary/1.0 (personal bookshelf site)" };
-const BASE_GENRES = [
-  "Fiction", "Nonfiction", "Philosophy", "Sci-Fi", "Fantasy",
-  "Mystery & Thriller", "Romance", "Memoir", "History",
+// The bookcase has one bay per genre. Only these are allowed.
+const GENRES = [
+  "Philosophy", "Fiction", "History", "Self-Help", "Non-Fiction", "Biography",
+  "Art & Creativity", "Sci-Fi", "Religion", "Comedy", "Finance",
 ];
+const GENRE_ALIASES: Record<string, string> = {
+  "nonfiction": "Non-Fiction", "non fiction": "Non-Fiction", "philosphy": "Philosophy",
+  "self help": "Self-Help", "selfhelp": "Self-Help", "science fiction": "Sci-Fi", "scifi": "Sci-Fi",
+  "art and creativity": "Art & Creativity", "art": "Art & Creativity", "creativity": "Art & Creativity",
+  "humor": "Comedy", "humour": "Comedy", "money": "Finance", "personal finance": "Finance",
+  "memoir": "Biography", "autobiography": "Biography", "spirituality": "Religion",
+};
+function canonGenre(v: unknown): string | null {
+  const raw = clean(v);
+  if (!raw) return null;
+  const exact = GENRES.find((g) => g.toLowerCase() === raw.toLowerCase());
+  if (exact) return exact;
+  return GENRE_ALIASES[raw.toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ").trim()] ?? null;
+}
 
 // ---------- helpers ----------
 const json = (b: unknown, s = 200) =>
@@ -130,16 +145,16 @@ function physical(key: string, pages: number | null) {
 }
 
 // ---------- AI suggestions for blank genre / themes / emotion ----------
-async function suggest(rows: any[], genres: string[]) {
+async function suggest(rows: any[]) {
   const out = new Map<number, any>();
   const need = rows
-    .filter((r) => !clean(r.genre) || !clean(r.themes) || clean(r.emotion) === null)
+    .filter((r) => !canonGenre(r.genre) || !clean(r.themes) || clean(r.emotion) === null)
     .slice(0, 25);
   if (!ANTHROPIC_KEY || need.length === 0) return out;
   const list = need.map((r) => `${r.row} :: ${r.title} :: ${r.author}`).join("\n");
   const prompt = `You tag books for a personal library website.
 For each book below, return:
-- "genre": one shelf genre. Prefer one of these existing genres: ${genres.join(", ")}. Only invent a new one if none fits at all.
+- "genre": exactly one of these, spelled exactly like this: ${GENRES.join(", ")}. Never use anything else.
 - "themes": 2 to 4 short lowercase themes (1-2 words each) describing what the book is about. Reuse common theme words so books with shared ideas share themes.
 - "emotion": an integer from -2 to 2 for the book's emotional temperature. -2 = cold, bleak, detached. 0 = neutral or balanced. 2 = warm, tender, hopeful.
 
@@ -170,7 +185,7 @@ Reply with ONLY a JSON array and no other text, like:
     for (const s of arr) {
       const em = Math.round(Number(s.emotion));
       out.set(Number(s.row), {
-        genre: typeof s.genre === "string" ? s.genre.trim() : undefined,
+        genre: canonGenre(s.genre) ?? undefined,
         themes: Array.isArray(s.themes)
           ? s.themes.map((t: unknown) => String(t).toLowerCase().trim()).filter(Boolean).slice(0, 4).join(", ")
           : undefined,
@@ -190,8 +205,10 @@ function userFields(b: any) {
     sheet_key: b.key,
     title: clean(b.title),
     author: clean(b.author),
-    genre: clean(b.genre),
-    status: clean(b.status)?.toLowerCase() === "reading" ? "reading" : "read",
+    genre: canonGenre(b.genre),
+    status: ["reading", "abandoned"].includes(clean(b.status)?.toLowerCase() ?? "")
+      ? clean(b.status)!.toLowerCase()
+      : "read",
     date_finished: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
     rating: Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null,
     thoughts: clean(b.thoughts),
@@ -253,17 +270,27 @@ async function handle(req: Request) {
   const existing = existingRaw ?? [];
   const ex = new Map(existing.map((e: any) => [e.sheet_key, e]));
 
-  // fill blank genre / themes / emotion with suggestions
-  const genres = [...new Set([...BASE_GENRES, ...books.map((b) => clean(b.genre)).filter(Boolean)])] as string[];
-  const sugg = await suggest(books, genres);
+  // fix genre spellings, then fill blank or unknown genre / themes / emotion with suggestions
+  const fixed = new Map<number, Record<string, unknown>>();
+  for (const b of books) {
+    const g = canonGenre(b.genre);
+    if (g && g !== clean(b.genre)) { b.genre = g; fixed.set(b.row, { genre: g }); }
+  }
+  const sugg = await suggest(books);
   for (const b of books) {
     const s = sugg.get(b.row);
-    if (!s) continue;
     const filled: Record<string, unknown> = {};
-    if (!clean(b.genre) && s.genre) { b.genre = s.genre; filled.genre = s.genre; }
+    if (fixed.has(b.row)) results.set(b.row, { replace: fixed.get(b.row) });
+    if (!s) continue;
+    if (!canonGenre(b.genre) && s.genre) {
+      const had = clean(b.genre);
+      b.genre = s.genre;
+      if (had) results.set(b.row, { replace: { genre: s.genre } });
+      else filled.genre = s.genre;
+    }
     if (!clean(b.themes) && s.themes) { b.themes = s.themes; filled.themes = s.themes; }
     if (clean(b.emotion) === null && s.emotion !== undefined) { b.emotion = s.emotion; filled.emotion = s.emotion; }
-    if (Object.keys(filled).length) results.set(b.row, { suggested: filled });
+    if (Object.keys(filled).length) results.set(b.row, { ...(results.get(b.row) ?? {}), suggested: filled });
   }
 
   // enrich new / changed books
@@ -274,7 +301,8 @@ async function handle(req: Request) {
     const status = results.get(b.row) ?? {};
     results.set(b.row, status);
     const base = userFields(b);
-    if (!needsEnrich(b, ex.get(b.key))) { keep.push(base); status.sync_status = "✓ on shelf"; continue; }
+    const shelfNote = !base.genre ? "⚠ pick a genre from the list" : base.status === "abandoned" ? "✓ in the secret shelf" : "✓ on shelf";
+    if (!needsEnrich(b, ex.get(b.key))) { keep.push(base); status.sync_status = shelfNote; continue; }
     if (budget <= 0) { status.sync_status = "⏳ queued for next sync"; continue; }
     budget--;
 
@@ -306,7 +334,7 @@ async function handle(req: Request) {
       ? "✓ on shelf (no cover found)"
       : ov && !pal
       ? "⚠ couldn't read cover_override image"
-      : "✓ on shelf";
+      : shelfNote;
   }
 
   if (keep.length) {
