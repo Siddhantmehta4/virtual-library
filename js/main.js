@@ -85,7 +85,14 @@ function bookEl(b, bay, index) {
   btn.setAttribute("aria-label", `${b.title} by ${b.author}`);
   applyBookVars(btn, b, BOOK_K);
   const body = el("span", "b3d");
-  body.append(spineFaces(b), el("span", "pages" + (b.binding === "hardcover" ? " hard" : "")));
+  const front = el("span", "front");
+  if (b.cover) front.style.backgroundImage = `url("${b.cover}")`;
+  else {
+    front.classList.add("plain");
+    front.append(el("span", "front-title", b.title));
+  }
+  front.append(el("span", "front-shade"));
+  body.append(spineFaces(b), front, el("span", "pages" + (b.binding === "hardcover" ? " hard" : "")));
   if (b.status === "reading") body.append(el("span", "ribbon"));
   if (b.kind === "rec" && b.recommender) body.append(el("span", "tag", b.recommender));
   btn.append(body);
