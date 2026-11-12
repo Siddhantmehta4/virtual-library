@@ -168,7 +168,7 @@ function hideCard() {
 // The plate is a real photo; the name is set in its band, shrunk to fit long names.
 function engrave(text, room) {
   const span = el("span", "engraved", text);
-  const fs = Math.min(11, room / (text.length * 0.78 + 1));
+  const fs = Math.min(19, room / (text.length * 0.64 + 0.6));
   span.style.fontSize = `${fs}px`;
   return span;
 }
@@ -198,7 +198,7 @@ function buildRoom() {
     layer.append(box);
 
     const plate = el("button", "plate");
-    plate.append(engrave(bay.genre, 104));
+    plate.append(engrave(bay.genre, 186));
     plate.type = "button";
     plate.style.left = `${bay.x + bay.w / 2}px`;
     plate.style.top = `${bay.board}px`;
@@ -303,8 +303,25 @@ function sizeBayBox(bay) {
   bay.el.style.width = `${win.w}px`;
 }
 
+// The full-case view shows the photo at well under half size; browsers shrink large images
+// poorly (patterns like the rug shimmer), so a pre-shrunk copy is used there.
+let photoRes = "full";
+function pickPhotoRes(s) {
+  const want = s * (devicePixelRatio || 1) < 0.62 ? "half" : "full";
+  if (want === photoRes) return;
+  photoRes = want;
+  const suffix = want === "half" ? "-half" : "";
+  for (const [id, name] of [["photo", "room"], ["extWall", "room-wall"], ["extFloor", "room-floor"]]) {
+    const img = $(id), src = `assets/${name}${suffix}.jpg`;
+    const pre = new Image();
+    pre.onload = () => { if (photoRes === want) img.src = src; };
+    pre.src = src;
+  }
+}
+
 function applyCamera(t) {
   $("stage").style.transform = `translate(${t.tx}px, ${t.ty}px) scale(${t.s})`;
+  pickPhotoRes(t.s);
   if (!state.zoom) placeExtensions(t);
 }
 
@@ -323,6 +340,16 @@ function placeExtensions(t) {
   top.style.height = `${vh + 2}px`;
   bot.style.top = `${t.ty + (IMG.h + FLOOR_DOWN) * t.s - 2}px`;
   bot.style.height = `${vh}px`;
+}
+
+// Zoomed in, the photo's back panel is softly out of focus, like a close-up lens:
+// the books stay sharp, the wood behind them falls back.
+function placeDepth(bay) {
+  const win = bayWindow(bay);
+  Object.assign($("depth").style, {
+    left: `${win.x}px`, width: `${win.w}px`,
+    top: `${bay.top + 10}px`, height: `${bay.base - bay.top - 14}px`,
+  });
 }
 
 function placeCurtain(bay) {
@@ -353,9 +380,10 @@ function openZoom(bay) {
   fillBay(bay, true);
   bay.el.classList.add("zoomed");
   placeCurtain(bay);
+  placeDepth(bay);
   $("scene").classList.add("zooming");
   applyCamera(zoomTransform(bay));
-  $("zoomPlate").replaceChildren(engrave(bay.genre, 150));
+  $("zoomPlate").replaceChildren(engrave(bay.genre, 168));
   const n = bay.books.length;
   $("zoomCount").textContent = `${n} ${n === 1 ? "book" : "books"}`;
   $("zoomHead").classList.add("on");
@@ -604,6 +632,7 @@ addEventListener("resize", () => {
     if (state.zoom) {
       sizeBayBox(state.zoom);
       placeCurtain(state.zoom);
+      placeDepth(state.zoom);
       syncPerspective(state.zoom);
       applyCamera(zoomTransform(state.zoom));
     } else applyCamera(overviewTransform());

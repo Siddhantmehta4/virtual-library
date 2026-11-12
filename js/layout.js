@@ -6,7 +6,8 @@ export const EYE = { x: 1456, y: 816 };
 export const PERSPECTIVE = 3600;
 
 // The bookcase itself, including frame and arches. Keeps it on screen on small displays.
-export const CASE = { x0: 470, x1: 2410, y0: 70, y1: 1450 };
+// Includes the rug, so it is never cut off.
+export const CASE = { x0: 470, x1: 2410, y0: 60, y1: 1585 };
 
 // Inner edges of the three bay columns.
 const COLS = [
