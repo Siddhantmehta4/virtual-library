@@ -157,8 +157,7 @@ div.obj { cursor: default; }
 
 /* set back on a shelf above the camera: base hidden behind the board's edge, top leaning away,
    a little darker where it meets the shelf */
-.obj.on-shelf { transform: perspective(520px) rotateX(7deg); }
-.obj.on-shelf:hover { transform: perspective(520px) rotateX(7deg); }
+.obj.on-shelf:hover { transform: translateY(-3px); }
 .obj.on-shelf img, .obj.on-shelf .tint { clip-path: inset(0 0 var(--hide) 0); }
 .obj.on-shelf .contact { display: none; }
 .obj.on-shelf .tint {
@@ -360,17 +359,7 @@ div.obj { cursor: default; }
   background: none;
   cursor: zoom-in;
 }
-.lying {
-  display: block;
-  position: relative;
-  overflow: hidden;
-  background-blend-mode: overlay;
-  background-image: url("assets/tex/cloth-linen.jpg") !important;
-  background-size: 120px auto !important;
-  border-radius: 1px;
-  filter: brightness(0.8) saturate(0.85);
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.45), inset 0 4px 4px -3px rgba(255, 200, 140, 0.35), 0 2px 3px rgba(0, 0, 0, 0.5);
-}
+
 
 /* ---------- books ---------- */
 .book {
@@ -797,7 +786,7 @@ div.obj { cursor: default; }
 #bays.settling .book { animation: settle 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.1) both; animation-delay: calc(var(--i, 0) * 28ms); }
 @keyframes settle { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: none; } }
 .obj-hourglass { transition: transform 0.9s cubic-bezier(0.6, 0, 0.3, 1.2); }
-.obj-hourglass.flipped, .obj-hourglass.flipped:hover { transform: perspective(520px) rotateX(7deg) rotate(180deg); transform-origin: 50% 55%; }
+.obj-hourglass.flipped, .obj-hourglass.flipped:hover { transform: rotate(180deg); transform-origin: 50% 55%; }
 
 /* ---------- night sky ---------- */
 .night { position: fixed; inset: 0; z-index: 60; visibility: hidden; }
@@ -1025,27 +1014,14 @@ div.obj { cursor: default; }
   transition: opacity 0.6s ease 1.2s;
 }
 .compartment.open .ts-plate { opacity: 1; }
+.ts-plate { z-index: 3; }
 .ts-word { font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #e6d09a; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8); transform: translateY(1px); }
 .ts-kanji { font-size: 11px; color: #e6d09a; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8); }
 .heap { position: absolute; left: 8%; right: 8%; bottom: 4px; top: 64px; }
-.slab {
-  position: absolute;
-  padding: 0 6px;
-  border: 0;
-  border-radius: 1px;
-  overflow: hidden;
-  cursor: pointer;
-  background-blend-mode: overlay;
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.5), inset 0 3px 3px -2px rgba(255, 210, 160, 0.4), 0 3px 5px rgba(0, 0, 0, 0.6);
-  transform: rotate(var(--rot));
-  opacity: 0;
-  animation: tumble 0.7s cubic-bezier(0.3, 0, 0.4, 1.3) both;
-  transition: transform 0.3s ease;
-}
+
 .compartment:not(.open) .slab { animation: none; }
 .slab.lift { transform: rotate(var(--rot)) translateY(-6px); z-index: 2; }
 @keyframes tumble { 0% { opacity: 0; transform: translateY(-120px) rotate(calc(var(--rot) - 25deg)); } 70% { opacity: 1; transform: translateY(4px) rotate(var(--rot)); } 100% { opacity: 1; transform: rotate(var(--rot)); } }
-.slab-title { display: block; font-family: var(--font-display); font-weight: 600; font-size: 10px; line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .heap-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; margin: 0; font-family: var(--font-display); font-style: italic; font-size: 16px; color: #d9c79e; opacity: 0.8; }
 
 /* tsundoku note */
@@ -1062,3 +1038,32 @@ div.obj { cursor: default; }
 
 /* scenery objects: no hover, no clicks */
 .obj.still { pointer-events: none; cursor: default; }
+
+/* ---------- lying books (overflow stacks, tsundoku heap) ---------- */
+.lbook {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.55);
+}
+.lbook-in { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.lbook-in .spine { position: absolute; inset: 0; }
+.lbook-in .t, .lbook-in .a { top: 9%; bottom: 9%; }
+/* light from above: top edge catches it, underside falls into shadow */
+.lbook-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 196, 130, 0.28), rgba(255, 196, 130, 0) 30%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.45));
+}
+.unlit .lbook-light { background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.55)); }
+.stack .lbook + .lbook { margin-top: -1px; }
+.slab { position: absolute; transform: rotate(var(--rot)); animation: tumble 0.7s cubic-bezier(0.3, 0, 0.4, 1.3) both; opacity: 0; cursor: pointer; transition: transform 0.3s ease; }
+
+/* ---------- lights off ---------- */
+body.lights-off .bay-row, body.lights-off .plate { filter: brightness(0.16) saturate(0.6); }
+body.lights-off .obj img { filter: brightness(0.32) saturate(0.6) !important; }
+body.lights-off .obj .tint { display: none; }
+body.lights-off .obj-lamp img { filter: brightness(0.5) saturate(0.7) !important; }
+body.lights-off .lamp-glow, body.lights-off .wall-title { opacity: 0 !important; }
+body.lights-off .photo-ext { filter: brightness(0.75); }

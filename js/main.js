@@ -88,6 +88,24 @@ function applyBookVars(node, b, k) {
   s.setProperty("--fs", clamp(b.width * 0.46, 8, 15));
 }
 
+// A book lying on its side: the same spine as a standing book (colour, material, lettering),
+// turned so the title reads left to right, with the page block's edge showing behind it.
+function lyingBook(b, k) {
+  const len = b.height * k, thick = Math.max(8, b.width * k);
+  const box = el("span", "lbook");
+  box.style.width = `${len}px`;
+  box.style.height = `${thick}px`;
+  const inner = el("span", "lbook-in");
+  applyBookVars(inner, b, k);
+  inner.style.width = `${thick}px`;
+  inner.style.height = `${len}px`;
+  inner.style.transform = `translate(0, ${thick}px) rotate(-90deg)`;
+  inner.append(spineFaces(b));
+  box.append(inner, el("span", "lbook-light"));
+  box._book = b;
+  return box;
+}
+
 function bookEl(b, bay, index) {
   const btn = el("button", "book");
   btn.type = "button";
@@ -250,11 +268,10 @@ function fillBay(bay, all) {
     stack.setAttribute("aria-label", `${hidden} more ${bay.genre} books`);
     stack.style.width = `${stackW}px`;
     bay.books.slice(fit, fit + 4).forEach((b, j) => {
-      const lying = el("span", "lying");
-      lying.style.width = `${b.height * BOOK_K * 0.94}px`;
-      lying.style.height = `${Math.max(9, b.width * BOOK_K)}px`;
-      lying.style.backgroundColor = b.spine;
-      lying.style.marginRight = `${(j % 2) * 6}px`;
+      const lying = lyingBook(b, BOOK_K * 0.94);
+      const r = seeded(b.id + "stack");
+      lying.style.marginRight = `${Math.round((r() - 0.3) * 10)}px`;
+      lying.style.transform = `rotate(${((r() - 0.5) * 1.6).toFixed(2)}deg)`;
       stack.append(lying);
     });
     stack.addEventListener("click", (e) => { e.stopPropagation(); openZoom(bay); });
@@ -334,7 +351,7 @@ function pickPhotoRes(s) {
   if (want === photoRes) return;
   photoRes = want;
   const suffix = want === "half" ? "-half" : "";
-  for (const [id, name] of [["photo", "room"], ["extWall", "room-wall"], ["extFloor", "room-floor"]]) {
+  for (const [id, name] of [["photo", state.lightsOff ? "room-off" : "room"], ["extWall", "room-wall"], ["extFloor", "room-floor"]]) {
     const img = $(id), src = `assets/${name}${suffix}.jpg`;
     const pre = new Image();
     pre.onload = () => { if (photoRes === want) img.src = src; };
@@ -701,7 +718,7 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck"]);
+const CLICKABLE = new Set(["glasses", "deck", "lamp", "hourglass", "book", "plant", "plane"]);
 
 function makeObject(spec, label, onClick) {
   const live = CLICKABLE.has(spec.id);
@@ -807,130 +824,28 @@ function seeded(str) {
   return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; };
 }
 
+// A real lamp doesn't fade: click, and the room cuts to the lights-off photo.
+// (The night sky will live here once it's redesigned.)
 function toggleLights() {
   if (state.lightsOff) return lightsOn();
   if (state.zoom) closeZoom();
   hideCard();
   state.lightsOff = true;
-  const night = $("night");
-  night.innerHTML = "";
-  const vw = innerWidth, vh = innerHeight;
-
-  const stars = [...document.querySelectorAll("#bays .book")]
-    .filter((btn) => btn._book && btn._book.kind === "book")
-    .map((btn) => {
-      const r = btn.getBoundingClientRect();
-      const rnd = seeded(btn._book.id);
-      return {
-        b: btn._book,
-        x0: r.left + r.width / 2, y0: r.top + r.height * 0.45,
-        x: r.left + r.width / 2 + (rnd() - 0.5) * 40,
-        y: r.top + r.height * 0.45 - 30 - rnd() * 70,
-        size: 3 + rnd() * 4,
-        delay: rnd() * 700,
-      };
-    });
-
-  const dark = el("div", "night-dark");
-  night.append(dark);
-
-  // constellation lines between books that share themes
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "night-lines");
-  svg.setAttribute("viewBox", `0 0 ${vw} ${vh}`);
-  const themesOf = (b) => new Set((b.themes || []).map((t) => String(t).toLowerCase().trim()).filter(Boolean));
-  const sets = stars.map((s) => themesOf(s.b));
-  const drawn = new Set();
-  stars.forEach((s, i) => {
-    const links = [];
-    stars.forEach((t, j) => {
-      if (i === j) return;
-      let shared = 0;
-      for (const th of sets[i]) if (sets[j].has(th)) shared++;
-      if (shared) links.push({ j, shared, d: Math.hypot(s.x - t.x, s.y - t.y) });
-    });
-    links.sort((a, b) => b.shared - a.shared || a.d - b.d);
-    links.slice(0, 2).forEach(({ j, shared }) => {
-      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-      if (drawn.has(key)) return;
-      drawn.add(key);
-      const t = stars[j];
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", s.x); line.setAttribute("y1", s.y);
-      line.setAttribute("x2", t.x); line.setAttribute("y2", t.y);
-      line.setAttribute("stroke-width", shared >= 2 ? 1.1 : 0.6);
-      line.style.opacity = shared >= 2 ? 0.55 : 0.28;
-      const len = Math.hypot(s.x - t.x, s.y - t.y);
-      line.style.strokeDasharray = len;
-      line.style.strokeDashoffset = len;
-      line.style.transitionDelay = `${1700 + Math.random() * 900}ms`;
-      svg.append(line);
-    });
-  });
-  night.append(svg);
-
-  const list = stars.map((s) => s.b);
-  stars.forEach((s, i) => {
-    const star = el("button", "star");
-    star.type = "button";
-    star.setAttribute("aria-label", `${s.b.title} by ${s.b.author}`);
-    const em = Math.max(-2, Math.min(2, Math.round(Number(s.b.emotion) || 0)));
-    star.style.setProperty("--c", STAR_COLORS[em]);
-    star.style.setProperty("--s", `${s.size}px`);
-    star.style.left = `${s.x0}px`;
-    star.style.top = `${s.y0}px`;
-    star.style.transitionDelay = `${900 + s.delay}ms`;
-    star.style.animationDelay = `${(s.delay * 7) % 3000}ms`;
-    star.dataset.x = s.x; star.dataset.y = s.y; star.dataset.x0 = s.x0; star.dataset.y0 = s.y0;
-    star.addEventListener("pointerenter", () => labelFor(star, `${s.b.title} · ${s.b.author}`));
-    star.addEventListener("pointerleave", hideCard);
-    star.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); openDetail(star, s.b, list, i, true); });
-    night.append(star);
-  });
-
-  if (!stars.length) night.append(el("p", "night-empty", "No books on the shelves yet."));
-
-  // the lamp, still faintly there, to switch the lights back on
-  const lampRect = document.querySelector(".obj-lamp").getBoundingClientRect();
-  const sw = el("button", "night-lamp");
-  sw.type = "button";
-  sw.setAttribute("aria-label", "Lights: On");
-  Object.assign(sw.style, { left: `${lampRect.left}px`, top: `${lampRect.top}px`, width: `${lampRect.width}px`, height: `${lampRect.height}px` });
-  const li = el("img"); li.src = "assets/obj/lamp.png"; li.alt = "";
-  sw.append(li);
-  sw.addEventListener("pointerenter", () => labelFor(sw, "Lights: On"));
-  sw.addEventListener("pointerleave", hideCard);
-  sw.addEventListener("click", (e) => { e.stopPropagation(); lightsOn(); });
-  night.append(sw);
-
-  night.classList.add("on");
-  night.setAttribute("aria-hidden", "false");
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    night.classList.add("dark");
-    night.querySelectorAll(".star").forEach((st) => {
-      st.style.left = `${st.dataset.x}px`;
-      st.style.top = `${st.dataset.y}px`;
-    });
-  }));
+  swapPhoto();
+  document.body.classList.add("lights-off");
 }
 
 function lightsOn() {
   if (!state.lightsOff) return;
   state.lightsOff = false;
   hideCard();
-  const night = $("night");
-  night.classList.add("lifting");
-  night.querySelectorAll(".star").forEach((st) => {
-    st.style.transitionDelay = "0ms";
-    st.style.left = `${st.dataset.x0}px`;
-    st.style.top = `${st.dataset.y0}px`;
-  });
-  night.classList.remove("dark");
-  setTimeout(() => {
-    night.classList.remove("on", "lifting");
-    night.setAttribute("aria-hidden", "true");
-    night.innerHTML = "";
-  }, 1500);
+  swapPhoto();
+  document.body.classList.remove("lights-off");
+}
+
+function swapPhoto() {
+  const suffix = photoRes === "half" ? "-half" : "";
+  $("photo").src = `assets/${state.lightsOff ? "room-off" : "room"}${suffix}.jpg`;
 }
 
 // =====================================================================
@@ -1109,25 +1024,22 @@ function revealTsundoku(bay) {
     recess.append(heap);
     if (!pile.length) heap.append(el("p", "heap-empty", "Nothing piled up. Yet."));
     let stackY = 0;
+    // size the pile so it fits under the plate, however many books are in it
+    const sumW = pile.reduce((a, b) => a + b.width, 0) || 1;
+    const kHeap = Math.min(BOOK_K, (w * 0.7) / 254, (h - 78) / (sumW * 0.9));
     pile.forEach((b, i) => {
       const r = seeded(b.id + "pile");
-      const slab = el("button", "slab");
-      slab.type = "button";
-      slab._book = b;
-      const len = Math.min(w * 0.78, b.height * 0.62), thick = Math.max(10, b.width * 0.42);
-      const propped = i > 0 && i % 4 === 3;
-      slab.style.background = b.spine;
-      slab.style.color = b.ink;
-      slab.style.width = `${propped ? thick : len}px`;
-      slab.style.height = `${propped ? len * 0.8 : thick}px`;
-      const tilt = propped ? 12 + r() * 8 : (r() - 0.5) * 14;
-      const dx = propped ? w * (0.62 + r() * 0.2) : w * 0.08 + r() * (w - len) * 0.6;
-      slab.style.left = `${dx}px`;
-      slab.style.bottom = `${propped ? 0 : stackY}px`;
-      slab.style.setProperty("--rot", `${tilt}deg`);
+      const slab = lyingBook(b, kHeap);
+      slab.classList.add("slab");
+      slab.setAttribute("role", "button");
+      slab.tabIndex = 0;
+      const len = b.height * kHeap, thick = Math.max(8, b.width * kHeap);
+      const tilt = (r() - 0.5) * 5;
+      slab.style.left = `${w * 0.06 + r() * Math.max(0, w * 0.84 - len)}px`;
+      slab.style.bottom = `${stackY}px`;
+      slab.style.setProperty("--rot", `${tilt.toFixed(1)}deg`);
       slab.style.animationDelay = `${700 + i * 160}ms`;
-      if (!propped) stackY += thick * 0.92;
-      slab.append(el("span", "slab-title", b.title));
+      stackY += thick * 0.86;
       slab.addEventListener("pointerenter", () => { slab.classList.add("lift"); showBookCard(slab, b); });
       slab.addEventListener("pointerleave", () => { slab.classList.remove("lift"); hideCard(); });
       slab.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); openDetail(slab, b, pile, i, true); });
