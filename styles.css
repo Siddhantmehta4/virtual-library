@@ -30,7 +30,6 @@ button { font: inherit; color: inherit; }
   left: 0;
   top: 0;
   transform-origin: 0 0;
-  transition: transform 0.95s cubic-bezier(0.65, 0, 0.25, 1);
 }
 .ext {
   position: absolute;
@@ -441,17 +440,23 @@ div.obj { cursor: default; }
   backface-visibility: hidden;
 }
 /* real material grain over every spine (photographed cloth and paper) */
+/* surface by binding: cloth hardcovers get woven cloth, paperbacks get printed card stock
+   (matte: real paper fibre; gloss: smooth with a hard highlight) */
 .spine::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--tex, url("assets/tex/paper-fine.jpg")) center / calc(var(--k) * 260px) auto repeat;
+  background: url("assets/tex/paper-matte.jpg") center / calc(var(--k) * 180px) auto repeat;
   mix-blend-mode: overlay;
-  opacity: 0.4;
+  opacity: 0.32;
   pointer-events: none;
 }
-.fin-cloth::after { opacity: 0.75; }
-.fin-gloss::after { opacity: 0.22; }
+.fin-cloth::after { background: var(--tex) center / calc(var(--k) * 260px) auto repeat; opacity: 0.7; }
+.fin-gloss::after {
+  background: linear-gradient(90deg, transparent 18%, rgba(255, 255, 255, 0.5) 26%, rgba(255, 255, 255, 0.12) 32%, transparent 40%);
+  mix-blend-mode: soft-light;
+  opacity: 0.9;
+}
 .strip {
   position: absolute;
   left: 0;

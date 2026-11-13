@@ -330,7 +330,7 @@ function sizeBayBox(bay) {
 // poorly (patterns like the rug shimmer), so a pre-shrunk copy is used there.
 let photoRes = "full";
 function pickPhotoRes(s) {
-  const want = s * (devicePixelRatio || 1) < 0.62 ? "half" : "full";
+  const want = s * (devicePixelRatio || 1) < 0.42 ? "half" : "full";
   if (want === photoRes) return;
   photoRes = want;
   const suffix = want === "half" ? "-half" : "";
@@ -342,11 +342,34 @@ function pickPhotoRes(s) {
   }
 }
 
+// The room is laid out at the camera's scale with CSS zoom, so books, plates and lettering are
+// drawn at the screen's real resolution instead of being shrunk from a 2912px canvas.
+// While the camera moves, a transform carries the motion; when it stops, zoom takes over again.
+let camTimer = 0;
+function setCamera(stage, t, zoom) {
+  const f = t.s / zoom;
+  stage.style.zoom = zoom;
+  stage.style.transform = `translate(${t.tx / zoom}px, ${t.ty / zoom}px) scale(${f})`;
+}
 function applyCamera(t, instant = false, ms = 0) {
   const stage = $("stage");
-  stage.style.transition = instant ? "none" : ms ? `transform ${ms}ms cubic-bezier(0.55, 0, 0.2, 1)` : "";
-  stage.style.transform = `translate(${t.tx}px, ${t.ty}px) scale(${t.s})`;
-  if (instant) void stage.offsetWidth;
+  clearTimeout(camTimer);
+  const from = state.cam;
+  state.cam = t;
+  if (instant || !from) {
+    stage.style.transition = "none";
+    setCamera(stage, t, t.s);
+    void stage.offsetWidth;
+  } else {
+    // re-express the current view at the target zoom without moving, then glide
+    stage.style.transition = "none";
+    setCamera(stage, from, t.s);
+    void stage.offsetWidth;
+    const dur = ms || 950;
+    stage.style.transition = `transform ${dur}ms ${ms ? "cubic-bezier(0.55, 0, 0.2, 1)" : "cubic-bezier(0.65, 0, 0.25, 1)"}`;
+    setCamera(stage, t, t.s);
+    camTimer = setTimeout(() => { stage.style.transition = "none"; }, dur + 30);
+  }
   pickPhotoRes(t.s);
   if (!state.zoom) placeExtensions(t);
 }
