@@ -1378,7 +1378,10 @@ body.cam-moving .bay .spine { box-shadow: none; }
 /* the lamp is gone, and its glow with it */
 .lamp-glow { display: none !important; }
 /* the sheet in the typewriter shouldn't outshine the dim arch */
-.obj-typewriter { --grade: brightness(0.9) contrast(1.05) saturate(0.88); }
+.obj-typewriter { --grade: brightness(0.92) contrast(1.05) saturate(0.88); }
+.obj-books { --grade: brightness(1.05) contrast(1.05) saturate(0.95); }
+.obj-magazines { --grade: brightness(1) contrast(1.05) saturate(0.95); }
+.obj-sleeves { --grade: brightness(0.86) contrast(1.06) saturate(0.82); }
 
 /* ---------- phones ---------- */
 /* above the case there's no wall to hover, so the title stays put instead of fading away */

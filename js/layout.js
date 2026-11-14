@@ -88,11 +88,14 @@ export const OBJECTS = {
   // right arch: the pen dropped beside the reading pile at a casual angle
   // the current read on top of a short pile of books (built from the library itself)
   stack: { x: 2018, base: 495, sink: 9 },
-  // centre arch, laid out like the reference: two old books leaning on the left wall, the cream
-  // typewriter, and a stack of magazines to its right
-  typewriter: { id: "typewriter", img: "writing-desk", x: 1360, base: 495, sink: 10, w: 534, h: 158, zone: "arch-right" },
-  // right arch: a walnut record player, lid up, beside a long row of record sleeves
-  speaker: { id: "speaker", img: "record-player", x: 2081, base: 495, sink: 7, w: 380, h: 161, zone: "arch-right" },
+  // centre arch, laid out like the reference: two old books leaning on the left wall of the arch,
+  // the cream typewriter, and a stack of magazines toward the right
+  books: { id: "books", img: "arch-books", x: 1135, base: 495, sink: 3, w: 71, h: 120, zone: "arch-right" },
+  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1338, base: 495, sink: 2, w: 184, h: 98, zone: "arch-right" },
+  magazines: { id: "magazines", img: "arch-magazines", x: 1592, base: 495, sink: 4, w: 142, h: 39, zone: "arch-right" },
+  // right arch: the record player, and the sleeves leaning on the arch's right wall
+  speaker: { id: "speaker", img: "arch-player", x: 1984, base: 495, sink: 3, w: 190, h: 175, zone: "arch-right" },
+  sleeves: { id: "sleeves", img: "arch-sleeves", x: 2237, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
