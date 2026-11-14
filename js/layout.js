@@ -85,9 +85,9 @@ export const OBJECTS = {
   // centre arch: lamp a touch off-centre, as if pushed aside
   lamp: { id: "lamp", x: 1392, base: 495, sink: 10, w: 172, h: 204, zone: "lamp" },
   // right arch: current read, pen dropped beside it at a casual angle
-  // right arch: the current read open on a small brass stand, the inkwell and pen beside it
-  book: { id: "book", img: "book-stand", x: 2026, base: 495, sink: 12, w: 134, h: 106, zone: "arch-right" },
-  pen: { id: "pen", img: "inkwell", x: 2214, base: 495, sink: 8, w: 59, h: 92, zone: "arch-right" },
+  // right arch: current read, pen dropped beside it at a casual angle
+  book: { id: "book", img: "book-open", x: 2010, base: 495, sink: 12, w: 220, h: 65, foot: 0.744, rot: -1.5, zone: "arch-right" },
+  pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
