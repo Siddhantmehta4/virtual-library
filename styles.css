@@ -798,8 +798,18 @@ div.obj { cursor: default; }
 #bays.shuffling .book, #bays.shuffling .stack, #bays.shuffling .plate { opacity: 0; transform: translateY(-14px); }
 #bays.settling .book { animation: settle 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.1) both; animation-delay: calc(var(--i, 0) * 28ms); }
 @keyframes settle { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: none; } }
-.obj-hourglass { transition: transform 0.9s cubic-bezier(0.6, 0, 0.3, 1.2); }
-.obj-hourglass.flipped, .obj-hourglass.flipped:hover { transform: rotate(180deg); transform-origin: 50% 55%; }
+/* the hourglass turns over in place: only the glass rotates, about the middle of its visible part,
+   and the shelf edge (clipped on the object, not the image) keeps hiding the same strip at the bottom */
+.obj-hourglass.on-shelf { clip-path: inset(-60px -60px var(--hide) -60px); }
+.obj-hourglass.on-shelf img, .obj-hourglass.on-shelf .tint { clip-path: none; }
+.obj-hourglass img, .obj-hourglass .tint {
+  transform-origin: 50% calc((100% - var(--hide, 0px)) / 2);
+  transition: transform 0.9s cubic-bezier(0.6, 0, 0.3, 1.2), filter 0.35s ease;
+}
+.obj-hourglass.flipped img, .obj-hourglass.flipped .tint { transform: rotate(calc(var(--rot, 0deg) + 180deg)); }
+/* the photo's base was cut flat where the tabletop was removed; soften that edge so it doesn't show
+   on top once the glass is turned over (it sits behind the shelf edge when upright) */
+.obj-hourglass img { -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 7%); mask-image: linear-gradient(0deg, transparent 0, #000 7%); }
 
 /* ---------- night sky ---------- */
 .night { position: fixed; inset: 0; z-index: 60; visibility: hidden; }
