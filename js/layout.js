@@ -80,22 +80,19 @@ export const TITLE = {
 // behind the board's front edge (shelf line y≈495). sink = how far below that line the base really is.
 export const OBJECTS = {
   // left arch: holder a little left of centre and forward, hourglass set further back and turned slightly
-  glasses: { id: "glasses", x: 712, base: 495, sink: 9, w: 114, h: 148, zone: "arch-left" },
-  hourglass: { id: "hourglass", x: 866, base: 495, sink: 17, w: 77, h: 146, rot: 2, zone: "arch-left" },
+  glasses: { id: "glasses", x: 712, base: 495, sink: 8, w: 103, h: 133, zone: "arch-left" },
+  hourglass: { id: "hourglass", x: 866, base: 495, sink: 15, w: 69, h: 131, rot: 2, zone: "arch-left" },
   // centre arch: lamp a touch off-centre, as if pushed aside
   lamp: { id: "lamp", x: 1392, base: 495, sink: 10, w: 172, h: 204, zone: "lamp" },
   // right arch: the pen dropped beside the reading pile at a casual angle
   // right arch: the pen dropped beside the reading pile at a casual angle
   // the current read on top of a short pile of books (built from the library itself)
   stack: { x: 2018, base: 495, sink: 9 },
-  // centre arch, laid out like the reference: two old books leaning on the left wall of the arch,
-  // the cream typewriter, and a stack of magazines toward the right
-  books: { id: "books", img: "arch-books", x: 1135, base: 495, sink: 3, w: 71, h: 120, zone: "arch-right" },
-  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1338, base: 495, sink: 2, w: 184, h: 98, zone: "arch-right" },
-  magazines: { id: "magazines", img: "arch-magazines", x: 1592, base: 495, sink: 4, w: 142, h: 39, zone: "arch-right" },
+  // centre arch: the cream typewriter, on its own
+  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1432, base: 495, sink: 2, w: 136, h: 72.5, zone: "arch-right" },
   // right arch: the record player, and the sleeves leaning on the arch's right wall
-  speaker: { id: "speaker", img: "arch-player", x: 1984, base: 495, sink: 3, w: 190, h: 175, zone: "arch-right" },
-  sleeves: { id: "sleeves", img: "arch-sleeves", x: 2237, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },
+  speaker: { id: "speaker", img: "arch-player", x: 2000, base: 495, sink: 3, w: 165, h: 152, zone: "arch-right" },
+  sleeves: { id: "sleeves", img: "arch-sleeves", x: 2252, base: 495, sink: 3, w: 177, h: 122, zone: "arch-right" },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
