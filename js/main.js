@@ -824,22 +824,25 @@ function addPlant() {
   addCard();
 }
 
-// A note pinned to the front of the plinth below Recommended; a string ties it to the plane.
+// A sticky note: its back half stuck to the inside right wall of the Recommended bay,
+// its front half curling out past the wall's front edge toward the room.
 function addCard() {
   const C = OBJECTS.card;
   $("objects").querySelector(".rec-note")?.remove();
   const card = el("button", "rec-note");
   card.type = "button";
   card.setAttribute("aria-label", "Recommend a book");
-  Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
-  card.style.setProperty("--rot", `${C.rot}deg`);
+  Object.assign(card.style, { left: `${C.edge}px`, top: `${C.top}px`, height: `${C.h}px` });
+  const back = el("span", "rn-back");
+  back.style.width = `${C.back}px`;
+  const front = el("span", "rn-front");
+  front.style.width = `${C.front}px`;
   const ink = el("span", "rec-note-ink");
   ink.append(el("span", "rn-1", "Recommend a book —"), el("span", "rn-2", "fly it to me!"));
-  const knot = el("span", "rec-note-knot");
-  card.append(el("span", "rec-note-shadow"), el("span", "rec-note-paper"), ink, el("span", "rec-note-pin"), knot);
+  front.append(ink);
+  card.append(back, front);
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
   $("objects").append(card);
-  state.cardKnot = knot;
 }
 
 // =====================================================================
@@ -1263,12 +1266,6 @@ function startPlane3D() {
       anchor: state.planeEl,
       isHidden: () => !!state.zoom || $("recForm").classList.contains("on"),
       isDark: () => state.lightsOff,
-      tie: () => {
-        const k = state.cardKnot;
-        if (!k || !k.isConnected) return null;
-        const r = k.getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-      },
       onReady: ({ flyOnce }) => {
         document.body.classList.add("plane-3d");
         if (!reduceMotion) setTimeout(flyOnce, 5000);

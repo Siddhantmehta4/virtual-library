@@ -1080,75 +1080,74 @@ body.lights-off .photo-ext { filter: brightness(0.75); }
 body.plane-3d .obj-plane img, body.plane-3d .obj-plane .tint, body.plane-3d .obj-plane .contact, body.plane-3d .obj-plane .reflection { opacity: 0; }
 body.plane-3d .obj-plane:hover { transform: none; }
 
-/* ---------- the note pinned to the plinth ---------- */
+/* ---------- sticky note in the Recommended bay ---------- */
 .rec-note {
   position: absolute;
   z-index: 2;
+  width: 0;
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
   pointer-events: auto;
-  transform: rotate(var(--rot));
-  transform-origin: 50% 6%;
-  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.05);
+  perspective: 1500px;
+  perspective-origin: -890px 50%; /* the room camera sits well to the left of this edge */
+  transform-style: preserve-3d;
 }
-.rec-note:hover { transform: rotate(calc(var(--rot) - 2deg)); }
-.rec-note-paper {
+.rn-back, .rn-front {
   position: absolute;
-  inset: 0;
-  background: url("assets/ui/card.png") center / 100% 100% no-repeat;
-  filter: brightness(1) sepia(0.08);
+  top: 0;
+  height: 100%;
+  /* buttery sticky-note stock with real paper fibre */
+  background:
+    url("assets/tex/paper-grain.jpg") center / 140px auto,
+    linear-gradient(180deg, #f6edc6, #efe2b0);
+  background-blend-mode: multiply, normal;
 }
-.rec-note-paper::after {
+/* stuck flat to the side wall, running back into the bay; lit warm by the strip above */
+.rn-back {
+  right: 0;
+  transform-origin: 100% 50%;
+  transform: rotateY(-70deg);
+  filter: brightness(0.78) sepia(0.35);
+}
+.rn-back::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(60, 25, 5, 0.35), rgba(255, 170, 90, 0.12)); }
+/* the free half curls out past the front edge, toward the room */
+.rn-front {
+  right: 0;
+  transform-origin: 100% 50%;
+  transform: rotateY(22deg) rotateZ(-1.5deg);
+  box-shadow: -6px 9px 14px rgba(0, 0, 0, 0.5);
+  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.05);
+}
+/* curl: the paper bows away from the wall, darker where it bends and at the lifted corner */
+.rn-front::before {
   content: "";
   position: absolute;
   inset: 0;
-  -webkit-mask: url("assets/ui/card.png") center / 100% 100% no-repeat;
-  mask: url("assets/ui/card.png") center / 100% 100% no-repeat;
-  /* warm spill from the bay above on the top, the lower half hangs in the floor's shadow */
-  background: linear-gradient(180deg, rgba(255, 200, 140, 0.15), rgba(0, 0, 0, 0) 45%, rgba(30, 15, 6, 0.28));
-  mix-blend-mode: multiply;
+  background:
+    linear-gradient(270deg, rgba(90, 60, 20, 0.32), rgba(0, 0, 0, 0) 16%),
+    linear-gradient(160deg, rgba(0, 0, 0, 0) 70%, rgba(80, 55, 20, 0.22));
+  pointer-events: none;
 }
-/* flat against the wood up top, lifting off it below the edge */
-.rec-note-shadow {
-  position: absolute;
-  inset: 6% -3% -6% 4%;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.6));
-  filter: blur(5px);
-  border-radius: 4px;
-}
+.rec-note:hover .rn-front { transform: rotateY(30deg) rotateZ(-1.5deg); }
 .rec-note-ink {
   position: absolute;
-  inset: 24% 2% 14%;
+  inset: 18% 12% 14% 6%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   font-family: "Caveat", "Segoe Script", cursive;
   font-weight: 600;
   line-height: 1;
   color: #1d2533;
-  opacity: 0.86;
+  opacity: 0.88;
   mix-blend-mode: multiply;
-  transform: rotate(-2deg);
 }
-.rn-1 { font-size: 21px; white-space: nowrap; }
-.rn-2 { font-size: 20px; white-space: nowrap; margin-left: 20px; }
-/* brass thumbtack */
-.rec-note-pin {
-  position: absolute;
-  left: 50%;
-  top: 4%;
-  width: 11px;
-  height: 11px;
-  margin-left: -5.5px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff3c8, #d9b15c 35%, #8a6424 70%, #4a3410);
-  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.6);
-}
-.rec-note-knot { position: absolute; left: 62%; bottom: 6%; width: 4px; height: 4px; border-radius: 50%; background: #b89a6e; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5); }
+.rn-1 { font-size: 18px; white-space: nowrap; }
+.rn-2 { font-size: 18px; white-space: nowrap; margin-left: 16px; }
 body.lights-off .rec-note { filter: brightness(0.28); }
 .scene.zooming .rec-note { pointer-events: none; }
 /* the deck: brighter so it reads against the rug and floor */
