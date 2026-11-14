@@ -196,7 +196,7 @@ function hideCard() {
 // The plate is a real photo; the name is set in its band, shrunk to fit long names.
 function engrave(text, room) {
   const span = el("span", "engraved", text);
-  const fs = Math.min(13, room / (text.length * 0.7 + 1));
+  const fs = Math.min(12, room / (text.length * 0.78 + 1));
   span.style.fontSize = `${fs}px`;
   return span;
 }
@@ -388,6 +388,8 @@ function applyCamera(t, instant = false, ms = 0) {
   }
   pickPhotoRes(t.s);
   if (!state.zoom) placeExtensions(t);
+  // overview: plates grow so their lettering is never under ~11px on screen; true size when zoomed
+  $("bays").style.setProperty("--ps", state.zoom ? 1 : Math.max(1, Math.min(1.7, 11 / (12 * t.s))));
 }
 
 // On tall screens the room continues above and below the photo: real wall and floor
@@ -700,6 +702,7 @@ function placeTitle() {
 // The title shows for a few seconds, then fades; it returns while the wall is hovered (or tapped).
 function setupTitle() {
   const t = $("wallTitle"), zone = $("wallZone");
+  state.titleFadeAt = performance.now() + 5000;
   setTimeout(() => t.classList.add("faded"), 5000);
   zone.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") t.classList.add("peek"); });
   zone.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") t.classList.remove("peek"); });
@@ -834,6 +837,8 @@ function addCard() {
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
   ["Recommend", "a book —", "fly it", "to me!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
+  // the lifted lower edge: a deeper shadow there, the paper curving away from the wood
+  card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
   $("objects").append(card);
@@ -1260,9 +1265,17 @@ function startPlane3D() {
       anchor: state.planeEl,
       isHidden: () => !!state.zoom || $("recForm").classList.contains("on"),
       isDark: () => state.lightsOff,
-      onReady: ({ flyOnce }) => {
+      note: () => {
+        const n = $("objects").querySelector(".rec-note");
+        if (!n) return null;
+        const r = n.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: Math.max(r.width, r.height) / 2 };
+      },
+      onReady: ({ flyOnce, arriveNow }) => {
         document.body.classList.add("plane-3d");
-        if (!reduceMotion) setTimeout(flyOnce, 5000);
+        // it comes in through the window just as the welcome starts to fade
+        if (reduceMotion) arriveNow();
+        else setTimeout(flyOnce, Math.max(0, (state.titleFadeAt || 0) - performance.now()));
       },
     });
   }).catch((e) => console.warn("3D plane unavailable, using the photo", e));

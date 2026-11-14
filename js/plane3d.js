@@ -6,10 +6,11 @@ import * as THREE from "./vendor/three.module.min.js";
 const FOV = 30;
 const FLOOR_TILT = 0.36; // radians: how steeply the room camera looks down at the floor
 
-export function initPlane3D({ anchor, isHidden, isDark, tie, onReady }) {
+export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
   const canvas = document.createElement("canvas");
   canvas.className = "plane3d";
   canvas.setAttribute("aria-hidden", "true");
+  canvas.style.opacity = "0";
   document.body.append(canvas);
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -124,25 +125,41 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, onReady }) {
     return { size, base };
   }
 
-  function flyOnce() {
+  // The plane hasn't arrived yet when the page opens: it drifts in through the window on the
+  // right, wanders across, circles the note once and settles onto its spot on the floor.
+  let arrived = false;
+  function flyIn() {
     if (flight) return;
-    const { size } = restFrame();
-    const u = size; // path scaled to the plane's size so it reads the same on any screen
-    // in screen space: up and left in front of the case, a wide turn, then back down to land
-    // a small hop: lift, a short curve out and back, and drop onto the same spot
+    const { size, base } = restFrame();
+    const n = note && note();
+    const nc = n ? toWorld(n.x, n.y) : base.clone().add(new THREE.Vector3(size, size * 3, 0));
+    const R = Math.max(size * 1.1, n ? n.r * 0.95 : size);
+    const W = (x, y) => toWorld(x, y);
     const pts = [
-      [0, 0, 0], [-0.42, 0.72, 0.27], [-1.28, 1.23, 0.54], [-1.92, 0.93, 0.54],
-      [-1.35, 0.42, 0.33], [-0.42, 0.09, 0.09], [0, 0, 0],
-    ].map(([x, y, z]) => new THREE.Vector3(x * u, y * u, z * u));
-    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 3100 };
+      W(vw + size * 2, vh * 0.30).setZ(size * 1.5),          // outside the window
+      W(vw * 0.90, vh * 0.24).setZ(size * 2.2),
+      W(vw * 0.80, vh * 0.34).setZ(size * 2.8),              // a lazy dip and twist
+      nc.clone().add(new THREE.Vector3(R * 1.1, R * 1.5, size * 2.2)),
+      nc.clone().add(new THREE.Vector3(-R * 0.4, R * 1.3, size * 1.8)), // over the note
+      nc.clone().add(new THREE.Vector3(-R * 1.4, R * 0.1, size * 2.0)), // round its left side
+      nc.clone().add(new THREE.Vector3(-R * 0.5, -R * 0.85, size * 2.4)),// under it
+      nc.clone().add(new THREE.Vector3(R * 1.25, -R * 0.35, size * 2.0)),// back up its right
+      nc.clone().lerp(base, 0.6).add(new THREE.Vector3(R * 1.0, 0, size * 1.3)),
+      base.clone().add(new THREE.Vector3(size * 1.2, size * 0.5, size * 0.4)), // glide down
+      base.clone().add(new THREE.Vector3(size * 0.35, size * 0.08, size * 0.1)),
+      base.clone(),
+    ];
+    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 7200, abs: true };
   }
+  function flyOnce() { flyIn(); }
+  function arriveNow() { arrived = true; }
 
   const tmpQ = new THREE.Quaternion(), m4 = new THREE.Matrix4();
-  const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  const ease = (t) => 1 - Math.pow(1 - t, 1.9); // steady through the air, slowing into the landing
 
   function frame(now) {
     requestAnimationFrame(frame);
-    const hidden = isHidden();
+    const hidden = isHidden() || (!arrived && !flight);
     canvas.style.opacity = hidden ? "0" : "1";
     if (hidden && !flight) return;
     const { size, base } = restFrame();
@@ -173,16 +190,18 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, onReady }) {
       const p = flight.curve.getPointAt(e);
       const tan = flight.curve.getTangentAt(Math.min(0.999, Math.max(0.001, e)));
       const ahead = flight.curve.getTangentAt(Math.min(0.999, e + 0.03));
-      const bank = THREE.MathUtils.clamp((tan.x * ahead.z - tan.z * ahead.x) * 18, -0.9, 0.9);
+      // bank into turns using the screen-plane curvature, plus a gentle roll that comes and goes
+      const turn = tan.x * ahead.y - tan.y * ahead.x;
+      const bank = THREE.MathUtils.clamp(turn * 22, -1.1, 1.1) + Math.sin(t * Math.PI * 5) * 0.12 * (1 - t);
       m4.lookAt(new THREE.Vector3(), tan.clone().negate(), new THREE.Vector3(0, 1, 0));
       const flyQ = new THREE.Quaternion().setFromRotationMatrix(m4)
         .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI / 2, 0)))
         .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(bank, 0, 0)));
-      const blend = Math.min(1, Math.min(t / 0.1, (1 - t) / 0.12));
+      const blend = flight.abs ? Math.min(1, (1 - t) / 0.16) : Math.min(1, Math.min(t / 0.1, (1 - t) / 0.12));
       tmpQ.copy(restQ).slerp(flyQ, THREE.MathUtils.smoothstep(blend, 0, 1));
       plane.quaternion.copy(tmpQ);
-      plane.position.copy(base).add(p);
-      if (t >= 1) flight = null;
+      plane.position.copy(flight.abs ? p : base.clone().add(p));
+      if (t >= 1) { flight = null; arrived = true; }
     } else {
       plane.quaternion.copy(restQ);
       const bob = lift * size * 0.12;
@@ -197,5 +216,5 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, onReady }) {
   }
   requestAnimationFrame(frame);
   window.__plane3d = { plane, camera, get flying() { return !!flight; } };
-  onReady && onReady({ flyOnce });
+  onReady && onReady({ flyOnce, arriveNow });
 }
