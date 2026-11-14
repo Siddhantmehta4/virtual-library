@@ -902,6 +902,18 @@ div.obj { cursor: default; }
 .reader-sort.on { color: #2e2419; background: rgba(155, 120, 60, 0.16); }
 .reader-close { margin-left: auto; border: 0; background: none; font-size: 30px; line-height: 1; color: #6b5538; cursor: pointer; }
 .reader-body { overflow-y: auto; padding: 6px 28px 26px; }
+.reader-search {
+  flex-basis: 100%;
+  margin-top: 4px;
+  padding: 9px 12px;
+  border: 1px solid rgba(120, 95, 55, 0.35);
+  border-radius: 2px;
+  background: rgba(255, 252, 244, 0.7);
+  font-family: var(--font-book);
+  font-size: 17px;
+  color: #2e2419;
+}
+.reader-search:focus { outline: 2px solid rgba(155, 42, 34, 0.45); outline-offset: 1px; }
 .reader-group { margin: 20px 0 4px; font-family: var(--font-display); font-style: italic; font-weight: 700; font-size: 21px; color: #7d2a20; }
 .reader-row { display: flex; width: 100%; align-items: baseline; gap: 14px; padding: 7px 0; border: 0; border-bottom: 1px dotted rgba(120, 95, 55, 0.3); background: none; text-align: left; cursor: pointer; color: inherit; }
 .reader-row:hover .rr-title { color: #7d2a20; }
@@ -1067,6 +1079,8 @@ div.obj { cursor: default; }
   position: relative;
   display: block;
   flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 0 1.5px 1.5px 0;
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.55);
 }
 .lbook-in { position: absolute; left: 0; top: 0; transform-origin: 0 0; }

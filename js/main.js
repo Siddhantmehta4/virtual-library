@@ -81,13 +81,7 @@ function lyingBook(b, k) {
   const box = el("span", "lbook");
   box.style.width = `${len}px`;
   box.style.height = `${thick}px`;
-  const inner = el("span", "lbook-in");
-  applyBookVars(inner, b, k);
-  inner.style.width = `${thick}px`;
-  inner.style.height = `${len}px`;
-  inner.style.transform = `translate(0, ${thick}px) rotate(-90deg)`;
-  inner.append(spineFaces(b));
-  box.append(inner, el("span", "lbook-light"));
+  box.append(makeSpineCanvas(b, true), el("span", "lbook-light"));
   box._book = b;
   return box;
 }
@@ -273,6 +267,10 @@ function fillBay(bay, all) {
       stack.append(lying);
     });
     stack.addEventListener("click", (e) => { e.stopPropagation(); openZoom(bay); });
+    if (canHover) {
+      stack.addEventListener("pointerenter", (e) => { e.stopPropagation(); labelFor(stack, `+${hidden} more on this shelf`); });
+      stack.addEventListener("pointerleave", hideCard);
+    }
     row.append(stack);
   }
   row.style.paddingRight = bay.reserve ? `${bay.reserve + 8}px` : "";
@@ -889,18 +887,22 @@ function swapPhoto() {
 // GLASSES: reading mode, the whole library as a plain list
 // =====================================================================
 function openReader(sort = state.readerSort || "genre") {
+  if (sort === "year") sort = "genre";
   state.readerSort = sort;
   const reader = $("reader");
-  const books = shelvedBooks();
   const panel = reader.querySelector(".reader-sheet");
   panel.innerHTML = "";
   const head = el("div", "reader-head");
   head.append(el("h2", "reader-title", "The fine print"));
   const sorts = el("div", "reader-sorts");
-  [["genre", "Genre"], ["year", "Year read"], ["rating", "Rating"], ["title", "Title"]].forEach(([k, label]) => {
+  [["genre", "Genre"], ["rating", "Rating"], ["title", "Title"]].forEach(([k, label]) => {
     const b = el("button", "reader-sort" + (k === sort ? " on" : ""), label);
     b.type = "button";
-    b.addEventListener("click", () => openReader(k));
+    b.addEventListener("click", () => {
+      state.readerSort = k;
+      sorts.querySelectorAll(".reader-sort").forEach((x) => x.classList.toggle("on", x === b));
+      renderReaderBody(panel);
+    });
     sorts.append(b);
   });
   const close = el("button", "reader-close", "×");
@@ -908,18 +910,36 @@ function openReader(sort = state.readerSort || "genre") {
   close.setAttribute("aria-label", "Close");
   close.addEventListener("click", closeReader);
   head.append(sorts, close);
-  panel.append(head);
 
-  const year = (b) => (b.finished ? b.finished.slice(0, 4) : b.status === "reading" ? "Reading now" : "Undated");
-  const groupKey = { genre: (b) => b.genre, year, rating: (b) => (b.rating ? "★".repeat(b.rating) : "Unrated"), title: (b) => (b.title[0] || "#").toUpperCase() }[sort];
+  const search = el("input", "reader-search");
+  search.type = "search";
+  search.placeholder = "Search a title or author";
+  search.setAttribute("aria-label", "Search a title or author");
+  search.autocomplete = "off";
+  search.value = state.readerQuery || "";
+  search.addEventListener("input", () => { state.readerQuery = search.value; renderReaderBody(panel); });
+  head.append(search);
+  panel.append(head, el("div", "reader-body"));
+  renderReaderBody(panel);
+  reader.classList.add("on");
+  reader.setAttribute("aria-hidden", "false");
+  setTimeout(() => search.focus({ preventScroll: true }), 250);
+}
+
+function renderReaderBody(panel) {
+  const sort = state.readerSort || "genre";
+  const q = (state.readerQuery || "").trim().toLowerCase();
+  const fold = (t) => String(t || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  const books = shelvedBooks().filter((b) => !q || fold(b.title).includes(fold(q)) || fold(b.author).includes(fold(q)));
+  const groupKey = { genre: (b) => b.genre, rating: (b) => (b.rating ? "★".repeat(b.rating) : "Unrated"), title: (b) => (b.title[0] || "#").toUpperCase() }[sort];
   const order = {
     genre: (a, b) => a.genre.localeCompare(b.genre) || a.title.localeCompare(b.title),
-    year: (a, b) => String(b.finished || "9999").localeCompare(String(a.finished || "9999")),
     rating: (a, b) => (b.rating || 0) - (a.rating || 0) || a.title.localeCompare(b.title),
     title: (a, b) => a.title.localeCompare(b.title),
   }[sort];
   const sorted = [...books].sort(order);
-  const body = el("div", "reader-body");
+  const body = panel.querySelector(".reader-body");
+  body.innerHTML = "";
   let current = null;
   sorted.forEach((b, i) => {
     const g = groupKey(b);
@@ -933,10 +953,8 @@ function openReader(sort = state.readerSort || "genre") {
     row.addEventListener("click", () => openDetail(row, b, sorted, i, true));
     body.append(row);
   });
-  if (!sorted.length) body.append(el("p", "reader-empty", "No books yet."));
-  panel.append(body);
-  reader.classList.add("on");
-  reader.setAttribute("aria-hidden", "false");
+  if (!sorted.length) body.append(el("p", "reader-empty", q ? `Nothing on the shelves matches “${state.readerQuery.trim()}”.` : "No books yet."));
+  body.scrollTop = 0;
 }
 function closeReader() {
   const r = $("reader");

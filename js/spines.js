@@ -82,17 +82,20 @@ function pump() {
   else pumping = false;
 }
 
-export function makeSpineCanvas(b) {
+// lying = true gives the same spine turned on its side, painted straight into a horizontal
+// canvas (an exact 90° pixel turn) so it is as crisp as a standing one
+export function makeSpineCanvas(b, lying = false) {
   const c = document.createElement("canvas");
   c.className = "spine-canvas";
-  c.width = Math.max(1, Math.round(b.width * R));
-  c.height = Math.max(1, Math.round(b.height * R));
+  const sw = Math.max(1, Math.round(b.width * R)), sh = Math.max(1, Math.round(b.height * R));
+  c.width = lying ? sh : sw;
+  c.height = lying ? sw : sh;
   if (!live.has(b.id)) live.set(b.id, new Set());
-  const entry = { canvas: c, b };
+  const entry = { canvas: c, b, lying, sw, sh };
   live.get(b.id).add(entry);
   const hit = cache.get(b.id);
-  if (hit && hit.canvas.width === c.width && hit.canvas.height === c.height) {
-    c.getContext("2d").drawImage(hit.canvas, 0, 0);
+  if (hit && hit.canvas.width === sw && hit.canvas.height === sh) {
+    blit(entry, hit.canvas);
   } else {
     const g = c.getContext("2d");
     g.fillStyle = b.spine || "#584f46";
@@ -103,19 +106,28 @@ export function makeSpineCanvas(b) {
   return c;
 }
 
+function blit(entry, src) {
+  const g = entry.canvas.getContext("2d");
+  g.save();
+  g.clearRect(0, 0, entry.canvas.width, entry.canvas.height);
+  if (entry.lying) { g.translate(0, entry.canvas.height); g.rotate(-Math.PI / 2); }
+  g.drawImage(src, 0, 0);
+  g.restore();
+}
+
 function draw(entry) {
   entry.started = true;
-  const { canvas: c, b } = entry;
+  const { b, sw, sh } = entry;
   let hit = cache.get(b.id);
   const coverReady = !!cover(b.cover, b.id);
-  if (!hit || hit.canvas.width !== c.width || hit.canvas.height !== c.height || (coverReady && !hit.withCover)) {
+  if (!hit || hit.canvas.width !== sw || hit.canvas.height !== sh || (coverReady && !hit.withCover)) {
     const off = document.createElement("canvas");
-    off.width = c.width; off.height = c.height;
+    off.width = sw; off.height = sh;
     paint({ canvas: off, b });
     hit = { canvas: off, withCover: coverReady };
     cache.set(b.id, hit);
   }
-  c.getContext("2d").drawImage(hit.canvas, 0, 0);
+  blit(entry, hit.canvas);
 }
 
 function redrawBook(id) {
