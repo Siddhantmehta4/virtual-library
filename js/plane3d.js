@@ -218,7 +218,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     const { size, base } = restFrame();
     if (!size) return;
     if (act) {
-      const t = Math.min(1, (now - act.start) / act.dur);
+      const t = Math.max(0, Math.min(1, (now - act.start) / act.dur));
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       plane.position.copy(act.curve.getPointAt(e));
       // turn through a level flight pose on the way, so it never flips or tumbles
@@ -275,7 +275,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     plane.scale.setScalar(size);
 
     if (flight) {
-      const t = Math.min(1, (now - flight.start) / flight.dur);
+      const t = Math.max(0, Math.min(1, (now - flight.start) / flight.dur));
       const e = ease(t);
       const p = flight.curve.getPointAt(e);
       const tan = flight.curve.getTangentAt(Math.min(0.999, Math.max(0.001, e)));

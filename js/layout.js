@@ -84,9 +84,10 @@ export const OBJECTS = {
   hourglass: { id: "hourglass", x: 866, base: 495, sink: 17, w: 77, h: 146, rot: 2, zone: "arch-left" },
   // centre arch: lamp a touch off-centre, as if pushed aside
   lamp: { id: "lamp", x: 1392, base: 495, sink: 10, w: 172, h: 204, zone: "lamp" },
-  // right arch: current read, pen dropped beside it at a casual angle
-  // right arch: current read, pen dropped beside it at a casual angle
-  book: { id: "book", img: "book-open", x: 2010, base: 495, sink: 12, w: 220, h: 65, foot: 0.744, rot: -1.5, zone: "arch-right" },
+  // right arch: the pen dropped beside the reading pile at a casual angle
+  // right arch: the pen dropped beside the reading pile at a casual angle
+  // the current read on top of a short pile of books (built from the library itself)
+  stack: { x: 2018, base: 495, sink: 9 },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },

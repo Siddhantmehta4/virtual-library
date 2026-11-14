@@ -855,9 +855,7 @@ function buildObjects() {
   layer.append(makeObject(OBJECTS.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off"), () => toggleLights()));
   layer.append(makeObject(OBJECTS.glasses, "Put these on to search.", () => openReader()));
   layer.append(makeObject(OBJECTS.hourglass, "If I could save time in a bottle.. ", (node) => flipTime(node)));
-  layer.append(makeObject(OBJECTS.book,
-    () => (reading.length ? `Currently reading: ${reading.map((b) => b.title).join(" · ")}` : "Currently reading: nothing open right now."),
-    (node) => { if (reading.length) openDetail(node, reading[0], reading, 0, true); }));
+  layer.append(readingStack(OBJECTS.stack, reading));
   layer.append(makeObject(OBJECTS.pen, "The Key to the Estate",
     (node) => {
       if (ESTATE_URL) window.open(ESTATE_URL, "_blank", "noopener");
@@ -875,6 +873,54 @@ function buildObjects() {
   const glow = $("lampGlow");
   const L = OBJECTS.lamp;
   Object.assign(glow.style, { left: `${L.x - L.w / 2 + L.w * 0.3 - 260}px`, top: `${L.base - L.h + L.h * 0.34 - 170}px` });
+}
+
+// The current read lies on top of a short pile of other books on the right-hand arch shelf:
+// real spines from the library, painted like the books in the case, lit by the lamp to the left.
+function readingStack(spec, reading) {
+  const shelved = shelvedBooks();
+  const byDate = [...shelved].sort((a, b) => String(b.finished || "").localeCompare(String(a.finished || "")));
+  const top = reading[0] || byDate[0];
+  if (!top) return el("span");
+  // two others underneath: favourites first, then recent reads, longer than the one on top
+  const pool = [...shelved.filter((b) => b.favorite), ...byDate].filter((b, i, a) => b !== top && a.indexOf(b) === i);
+  const under = pool.filter((b) => b.height >= top.height - 6).slice(0, 2);
+  while (under.length < 2 && pool[under.length]) under.push(pool.find((b) => !under.includes(b)));
+  const pile = [...under.sort((a, b) => b.height - a.height), top];
+  const k = BOOK_K * 0.94;
+  const node = el("button", "obj obj-stack zone-arch-right");
+  node.type = "button";
+  const label = () => (reading.length ? `Currently reading: ${reading.map((b) => b.title).join(" · ")}` : "Currently reading: nothing open right now.");
+  node.setAttribute("aria-label", label());
+  const books = el("span", "stack-books");
+  const r = seeded("stack" + pile.map((b) => b.id).join());
+  let h = 0, w = 0;
+  pile.forEach((b, i) => {
+    const lb = lyingBook(b, k);
+    lb.style.marginLeft = `${Math.round((r() - 0.5) * 14)}px`;
+    lb.style.setProperty("--tilt", `${((r() - 0.5) * 1.2).toFixed(2)}deg`);
+    books.prepend(lb); // bottom book first in the column
+    h += Math.max(8, b.width * k) - 1;
+    w = Math.max(w, b.height * k);
+  });
+  node.append(books);
+  if (reading.length) {
+    const rib = el("span", "stack-ribbon");
+    rib.style.top = `${Math.max(8, top.width * k) - 3}px`;
+    node.append(rib);
+  }
+  const sink = spec.sink || 0;
+  const W = w + 24;
+  Object.assign(node.style, { left: `${spec.x - W / 2}px`, top: `${spec.base + sink - h}px`, width: `${W}px`, height: `${h}px` });
+  node.style.setProperty("--hide", `${sink}px`);
+  node.addEventListener("pointerenter", () => { if (!state.zoom) labelFor(node, label()); });
+  node.addEventListener("pointerleave", hideCard);
+  node.addEventListener("click", (e) => {
+    e.stopPropagation();
+    hideCard();
+    if (reading.length) openDetail(node, reading[0], reading, 0, true);
+  });
+  return node;
 }
 
 function shelvedBooks() {
