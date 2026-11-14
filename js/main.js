@@ -1558,10 +1558,14 @@ setupRecForm();
 
 // first-timer hint in the corner
 const helpBtn = $("help");
+try { if (localStorage.getItem("helpSeen")) helpBtn.classList.add("seen"); } catch {}
+$("helpNote").addEventListener("click", (e) => e.stopPropagation());
 helpBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const open = !helpBtn.classList.contains("open");
   helpBtn.classList.toggle("open", open);
+  helpBtn.classList.add("seen");
+  try { localStorage.setItem("helpSeen", "1"); } catch {}
   $("helpNote").classList.toggle("on", open);
   helpBtn.setAttribute("aria-expanded", String(open));
 });
