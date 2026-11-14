@@ -788,8 +788,8 @@ function buildObjects() {
   const reading = state.books.filter((b) => b.status === "reading");
 
   layer.append(makeObject(OBJECTS.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off"), () => toggleLights()));
-  layer.append(makeObject(OBJECTS.glasses, "For the fine print.", () => openReader()));
-  layer.append(makeObject(OBJECTS.hourglass, "Time in a bottle.", (node) => flipTime(node)));
+  layer.append(makeObject(OBJECTS.glasses, "Put these on to search.", () => openReader()));
+  layer.append(makeObject(OBJECTS.hourglass, "If I could save time in a bottle.. ", (node) => flipTime(node)));
   layer.append(makeObject(OBJECTS.book,
     () => (reading.length ? `Currently reading: ${reading.map((b) => b.title).join(" · ")}` : "Currently reading: nothing open right now."),
     (node) => { if (reading.length) openDetail(node, reading[0], reading, 0, true); }));
