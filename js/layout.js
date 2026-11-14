@@ -89,10 +89,10 @@ export const OBJECTS = {
   // the current read on top of a short pile of books (built from the library itself)
   stack: { x: 2018, base: 495, sink: 9 },
   // centre arch: the cream typewriter, on its own
-  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1432, base: 495, sink: 2, w: 136, h: 72.5, zone: "arch-right" },
+  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1432, base: 495, sink: 2, w: 184, h: 98, zone: "arch-right" },
   // right arch: the record player, and the sleeves leaning on the arch's right wall
   speaker: { id: "speaker", img: "arch-player", x: 2000, base: 495, sink: 3, w: 165, h: 152, zone: "arch-right" },
-  sleeves: { id: "sleeves", img: "arch-sleeves", x: 2252, base: 495, sink: 3, w: 177, h: 122, zone: "arch-right" },
+  sleeves: { id: "sleeves", img: "arch-sleeves", x: 2237, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
