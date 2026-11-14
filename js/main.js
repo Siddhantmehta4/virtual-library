@@ -852,7 +852,7 @@ function buildObjects() {
   layer.innerHTML = "";
   const reading = state.books.filter((b) => b.status === "reading");
 
-  layer.append(makeObject(OBJECTS.sleeves, ""), makeObject(OBJECTS.frame, ""));
+  layer.append(makeObject(OBJECTS.guitar, ""), makeObject(OBJECTS.sleeves, ""), makeObject(OBJECTS.frame, ""));
   layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
     else flashLabel(node, "Still being typed. Soon.");

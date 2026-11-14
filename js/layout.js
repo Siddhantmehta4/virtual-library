@@ -95,6 +95,8 @@ export const OBJECTS = {
   speaker: { id: "speaker", img: "arch-player", x: 2000, base: 495, sink: 3, w: 165, h: 152, zone: "arch-right" },
   sleeves: { id: "sleeves", img: "arch-sleeves", x: 2237, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
+  // on the floor against the left wall: a Les Paul on its stand, its right edge catching the shelves' glow
+  guitar: { id: "guitar", x: 262, base: 1474, w: 216, h: 650, foot: 1, zone: "floor" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
