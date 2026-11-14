@@ -855,12 +855,6 @@ function buildObjects() {
   layer.append(makeObject(OBJECTS.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off"), () => toggleLights()));
   layer.append(makeObject(OBJECTS.glasses, "Put these on to search.", () => openReader()));
   layer.append(makeObject(OBJECTS.hourglass, "If I could save time in a bottle.. ", (node) => flipTime(node)));
-  layer.append(readingStack(OBJECTS.stack, reading));
-  layer.append(makeObject(OBJECTS.pen, "The Key to the Estate",
-    (node) => {
-      if (ESTATE_URL) window.open(ESTATE_URL, "_blank", "noopener");
-      else flashLabel(node, "The Estate opens soon.");
-    }));
   layer.append(makeObject(OBJECTS.deck, "Pick a card, any card.", (node) => {
     const shelved = shelvedBooks();
     if (!shelved.length) return;

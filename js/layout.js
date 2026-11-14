@@ -95,5 +95,5 @@ export const OBJECTS = {
   // the note propped in the Recommended bay, tied by a string to the plane
   // pinned to the front of the plinth at the bottom-right, half hanging over its lower edge
   // flat sticky note, tacked to the middle of the case's right-hand upright: half over the bay, half over the wall
-  card: { x: 2362, top: 1234, w: 90, h: 90 },
+  card: { x: 2362, top: 1240, w: 76, h: 76 },
 };
