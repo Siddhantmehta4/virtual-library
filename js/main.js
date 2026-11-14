@@ -131,48 +131,39 @@ function bookEl(b, bay, index) {
 
 // ---------- hover card ----------
 let cardTimer = 0;
-function placeCard(anchor, inside = false) {
+// Hover text is a single caption line along the bottom of the screen, like a label in a gallery:
+// nothing floats over the books, and it always appears in the same place.
+function placeCard() {
   const card = $("hoverCard");
-  cardTimer = setTimeout(() => {
-    const r = anchor.getBoundingClientRect();
-    card.classList.add("on");
-    const cw = card.offsetWidth, ch = card.offsetHeight;
-    const left = clamp(r.left + r.width / 2 - cw / 2, 10, innerWidth - cw - 10);
-    // genre cards sit inside their own bay, in the empty space above the books
-    const headroom = inside ? (LIFT / IMG.h) * $("stage").getBoundingClientRect().height : 0;
-    let top = inside ? r.top + headroom + 8 : r.top - ch - 12;
-    if (top < 10) top = r.bottom + 12;
-    card.style.left = `${left}px`;
-    card.style.top = `${top}px`;
-  }, 90);
+  cardTimer = setTimeout(() => card.classList.add("on"), 60);
 }
-function showBookCard(anchor, b) {
+function caption(parts) {
   clearTimeout(cardTimer);
   const card = $("hoverCard");
   card.innerHTML = "";
   card.classList.remove("label", "bay-card");
+  parts.filter(Boolean).forEach(([cls, text], i) => {
+    if (i) card.append(el("span", "hc-sep", cls === "hc-by" ? " — " : "  ·  "));
+    card.append(el("span", cls, text));
+  });
+  placeCard();
+}
+function showBookCard(anchor, b) {
   let meta = "";
-  if (b.kind === "rec") meta = `Recommended by ${b.recommender}`;
-  else if (b.status === "reading") meta = "Currently reading";
-  else if (b.finished) meta = `Finished ${fmtDate(b.finished)}`;
-  if (meta) card.append(el("p", "hc-meta", meta));
-  card.append(el("p", "hc-title", b.title));
-  card.append(el("p", "hc-author", b.author));
-  const bits = [b.year, b.rating ? "★".repeat(b.rating) : null].filter(Boolean);
-  if (bits.length) card.append(el("p", "hc-bits", bits.join("  ·  ")));
-  placeCard(anchor);
+  if (b.kind === "rec") meta = `recommended by ${b.recommender}`;
+  else if (b.status === "reading") meta = "reading it now";
+  else if (b.finished) meta = `finished ${fmtDate(b.finished)}`;
+  caption([
+    ["hc-title", b.title],
+    b.author ? ["hc-by", b.year ? `${b.author}, ${b.year}` : b.author] : null,
+    meta ? ["hc-meta", meta] : null,
+    b.rating ? ["hc-stars", "★".repeat(b.rating)] : null,
+  ]);
 }
 function showBayCard(anchor, bay) {
   if (state.zoom) return;
-  clearTimeout(cardTimer);
-  const card = $("hoverCard");
-  card.innerHTML = "";
-  card.classList.remove("label");
-  card.classList.add("bay-card");
-  card.append(el("p", "hc-title", bay.genre));
   const n = bay.books.length;
-  card.append(el("p", "hc-bits", `${n} ${n === 1 ? "book" : "books"} · click to look closer`));
-  placeCard(bay.plateEl || anchor);
+  caption([["hc-title", bay.genre], ["hc-meta", `${n} ${n === 1 ? "book" : "books"}`]]);
 }
 function hideCard() {
   clearTimeout(cardTimer);
@@ -776,13 +767,7 @@ function setupTitle() {
 
 // ---------- pixel objects ----------
 function labelFor(anchor, text) {
-  clearTimeout(cardTimer);
-  const card = $("hoverCard");
-  card.innerHTML = "";
-  card.classList.remove("bay-card");
-  card.classList.add("label");
-  card.append(el("p", "hc-line", text));
-  placeCard(anchor);
+  caption([["hc-line", text]]);
 }
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
@@ -857,7 +842,7 @@ function buildObjects() {
     const i = Math.floor(Math.random() * shelved.length);
     openDetail(node, shelved[i], shelved, i, true);
   }));
-  state.planeEl = makeObject(OBJECTS.plane, "Book a flight to my shelf.", (node) => openRecForm(node));
+  state.planeEl = makeObject(OBJECTS.plane, "Click to book a flight to my shelf.", (node) => openRecForm(node));
   layer.append(state.planeEl);
   addPlant();
   const glow = $("lampGlow");
@@ -895,7 +880,7 @@ function addCard() {
   card.setAttribute("aria-label", "Recommend a book");
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
-  ["Click to", "recommend", "a book"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
+  ["Your", "Favorites!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
   // the lifted lower edge: a deeper shadow there, the paper curving away from the wood
   card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));

@@ -581,66 +581,38 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 .lit .pages { filter: brightness(0.72) sepia(0.35); }
 .unlit .pages { filter: brightness(0.4) sepia(0.2); }
 
-/* ---------- hover card ---------- */
+/* ---------- hover caption: one quiet line along the bottom, like a gallery label ---------- */
 .hover-card {
   position: fixed;
   z-index: 300;
-  width: 250px;
-  padding: 13px 17px 14px;
-  border-radius: 2px;
-  /* ivory card stock: warm base, real paper fibre on top, a faint aged edge */
-  background:
-    url("assets/tex/paper-grain.jpg") center / 260px auto,
-    radial-gradient(ellipse at 50% 40%, #f8f2e4, #ece2cb 85%);
-  background-blend-mode: multiply, normal;
-  color: #2e2419;
-  box-shadow: inset 0 0 0 1px rgba(120, 95, 55, 0.18), 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 14px 34px rgba(0, 0, 0, 0.45);
+  left: 50%;
+  bottom: 4px;
+  max-width: min(92vw, 900px);
+  padding: 9px 48px 8px;
+  transform: translate(-50%, 4px);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-display);
+  font-size: 21px;
+  line-height: 1.2;
+  color: #f1e8d6;
+  /* no box: a soft smudge of shade behind the words, enough to read them over any part of the room */
+  background: radial-gradient(closest-side, rgba(12, 9, 5, 0.55), rgba(12, 9, 5, 0.3) 60%, rgba(12, 9, 5, 0));
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 0, 0, 0.5);
   opacity: 0;
-  transform: translateY(6px);
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
-.hover-card.on { opacity: 1; transform: translateY(0); }
-.hover-card p { margin: 0; }
-.hc-meta, .hc-bits {
-  font-family: var(--font-book);
-  font-variant: small-caps;
-  font-size: 14px;
-  letter-spacing: 0.06em;
-  color: #8a6f4a;
-}
-.hc-title {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 23px;
-  line-height: 1.08;
-  margin-top: 3px !important;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(155, 42, 34, 0.35);
-}
-.hc-author { font-family: var(--font-book); font-style: italic; font-size: 16px; margin: 6px 0 5px !important; color: #4a3b2a; }
-.hc-bits { margin-top: 5px !important; }
-/* genre hover: a small card in the title's lettering */
-.hover-card.bay-card { width: auto; max-width: 220px; padding: 6px 12px 7px; }
-.hover-card.bay-card .hc-title {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 700;
-  font-size: 17px;
-  margin: 0 !important;
-  padding: 0;
-  border: 0;
-}
-.hover-card.bay-card .hc-bits {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-variant: normal;
-  font-size: 13px;
-  letter-spacing: 0;
-  margin-top: 1px !important;
-}
-.hover-card.label { width: auto; max-width: 290px; padding: 9px 15px 10px; }
-.hc-line { font-family: var(--font-book); font-style: italic; font-size: 17px; line-height: 1.25; }
+.hover-card.on { opacity: 1; transform: translate(-50%, 0); }
+.hc-title { font-style: italic; font-weight: 600; }
+.hc-by { font-weight: 500; }
+.hc-meta { font-weight: 500; color: #cbbd9f; }
+.hc-stars { font-size: 15px; letter-spacing: 0.08em; color: #d9b874; }
+.hc-sep { color: rgba(241, 232, 214, 0.55); white-space: pre; }
+.hc-line { font-style: italic; font-weight: 500; }
+@media (max-width: 640px) { .hover-card { font-size: 17px; bottom: 4px; padding: 8px 24px 7px; } }
 
 /* ---------- zoom header ---------- */
 .zoom-head {
@@ -1182,9 +1154,9 @@ body.plane-3d .obj-plane:hover { transform: none; }
   color: #1b2230;
 }
 .rn { font-size: 22px; white-space: nowrap; }
-.rn-1 { margin-left: 6px; }
+.rn-1 { margin-left: 16px; }
 .rn-2 { margin-left: 0; }
-.rn-3 { margin-left: 22px; }
+
 .rec-note-pin {
   position: absolute;
   left: 50%;
