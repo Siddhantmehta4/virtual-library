@@ -581,38 +581,33 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 .lit .pages { filter: brightness(0.72) sepia(0.35); }
 .unlit .pages { filter: brightness(0.4) sepia(0.2); }
 
-/* ---------- hover caption: one quiet line along the bottom, like a gallery label ---------- */
+/* ---------- hover card: plain, crisp, off-white; serif title over small typewriter facts ---------- */
 .hover-card {
   position: fixed;
   z-index: 300;
-  left: 50%;
-  bottom: 4px;
-  max-width: min(92vw, 900px);
-  padding: 9px 48px 8px;
-  transform: translate(-50%, 4px);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: var(--font-display);
-  font-size: 21px;
-  line-height: 1.2;
-  color: #f1e8d6;
-  /* no box: a soft smudge of shade behind the words, enough to read them over any part of the room */
-  background: radial-gradient(closest-side, rgba(12, 9, 5, 0.55), rgba(12, 9, 5, 0.3) 60%, rgba(12, 9, 5, 0));
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 0, 0, 0.5);
+  left: 0;
+  top: 0;
+  max-width: 270px;
+  padding: 13px 18px 12px;
+  border-radius: 3px;
+  background: #f3f1ec;
+  color: #2b2722;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 10px 28px rgba(0, 0, 0, 0.32);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition: opacity 0.18s ease;
 }
-.hover-card.on { opacity: 1; transform: translate(-50%, 0); }
-.hc-title { font-style: italic; font-weight: 600; }
-.hc-by { font-weight: 500; }
-.hc-meta { font-weight: 500; color: #cbbd9f; }
-.hc-stars { font-size: 15px; letter-spacing: 0.08em; color: #d9b874; }
-.hc-sep { color: rgba(241, 232, 214, 0.55); white-space: pre; }
-.hc-line { font-style: italic; font-weight: 500; }
-@media (max-width: 640px) { .hover-card { font-size: 17px; bottom: 4px; padding: 8px 24px 7px; } }
+.hover-card.on { opacity: 1; }
+.hover-card p { margin: 0; }
+.hc-title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 23px; line-height: 1.12; }
+.hc-author { font-family: "Karla", sans-serif; font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #4c463e; margin-top: 7px !important; }
+.hc-facts, .hc-meta { font-family: "Space Mono", monospace; font-size: 12.5px; color: #5d574e; margin-top: 7px !important; }
+.hc-meta { color: #7b7468; margin-top: 4px !important; }
+.bay-card .hc-title { font-size: 20px; }
+.bay-card .hc-facts { margin-top: 3px !important; }
+.bay-card { padding: 9px 15px 9px; }
+.label { padding: 9px 15px 10px; max-width: 300px; }
+.hc-line { font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 19px; line-height: 1.2; }
 
 /* ---------- zoom header ---------- */
 .zoom-head {

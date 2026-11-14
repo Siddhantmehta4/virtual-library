@@ -131,39 +131,45 @@ function bookEl(b, bay, index) {
 
 // ---------- hover card ----------
 let cardTimer = 0;
-// Hover text is a single caption line along the bottom of the screen, like a label in a gallery:
-// nothing floats over the books, and it always appears in the same place.
-function placeCard() {
+// Hover cards: a small, plain card just above whatever is pointed at.
+function placeCard(anchor) {
   const card = $("hoverCard");
-  cardTimer = setTimeout(() => card.classList.add("on"), 60);
+  cardTimer = setTimeout(() => {
+    const r = anchor.getBoundingClientRect();
+    card.classList.add("on");
+    const cw = card.offsetWidth, ch = card.offsetHeight;
+    const left = clamp(r.left + r.width / 2 - cw / 2, 10, innerWidth - cw - 10);
+    let top = r.top - ch - 10;
+    if (top < 10) top = r.bottom + 10;
+    card.style.left = `${Math.round(left)}px`;
+    card.style.top = `${Math.round(top)}px`;
+  }, 70);
 }
-function caption(parts) {
+function fillCard(kind, lines) {
   clearTimeout(cardTimer);
   const card = $("hoverCard");
-  card.innerHTML = "";
-  card.classList.remove("label", "bay-card");
-  parts.filter(Boolean).forEach(([cls, text], i) => {
-    if (i) card.append(el("span", "hc-sep", cls === "hc-by" ? " — " : "  ·  "));
-    card.append(el("span", cls, text));
-  });
-  placeCard();
+  card.className = `hover-card ${kind}${card.classList.contains("on") ? " on" : ""}`;
+  card.replaceChildren(...lines.filter(Boolean).map(([cls, text]) => el("p", cls, text)));
 }
 function showBookCard(anchor, b) {
   let meta = "";
-  if (b.kind === "rec") meta = `recommended by ${b.recommender}`;
-  else if (b.status === "reading") meta = "reading it now";
-  else if (b.finished) meta = `finished ${fmtDate(b.finished)}`;
-  caption([
+  if (b.kind === "rec") meta = `Recommended by ${b.recommender}`;
+  else if (b.status === "reading") meta = "Reading it now";
+  else if (b.finished) meta = `Finished ${fmtDate(b.finished)}`;
+  const facts = [b.year, b.kind === "rec" ? null : b.binding].filter(Boolean).join(" · ");
+  fillCard("book-card", [
     ["hc-title", b.title],
-    b.author ? ["hc-by", b.year ? `${b.author}, ${b.year}` : b.author] : null,
-    meta ? ["hc-meta", meta] : null,
-    b.rating ? ["hc-stars", "★".repeat(b.rating)] : null,
+    b.author ? ["hc-author", b.author] : null,
+    facts ? ["hc-facts", facts] : null,
+    meta ? ["hc-meta", meta + (b.rating ? `  ${"★".repeat(b.rating)}` : "")] : null,
   ]);
+  placeCard(anchor);
 }
 function showBayCard(anchor, bay) {
   if (state.zoom) return;
   const n = bay.books.length;
-  caption([["hc-title", bay.genre], ["hc-meta", `${n} ${n === 1 ? "book" : "books"}`]]);
+  fillCard("bay-card", [["hc-title", bay.genre], ["hc-facts", `${n} ${n === 1 ? "book" : "books"}`]]);
+  placeCard(bay.plateEl || anchor);
 }
 function hideCard() {
   clearTimeout(cardTimer);
@@ -767,7 +773,8 @@ function setupTitle() {
 
 // ---------- pixel objects ----------
 function labelFor(anchor, text) {
-  caption([["hc-line", text]]);
+  fillCard("label", [["hc-line", text]]);
+  placeCard(anchor);
 }
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
