@@ -9,4 +9,4 @@ export const ESTATE_URL = "";
 // Where the typewriter leads (the short story's reading page). Empty until it's up.
 export const STORY_URL = "";
 // Where the speaker leads (my reading playlist on Spotify). Empty until it's added.
-export const SPOTIFY_URL = "";
+export const SPOTIFY_URL = "https://open.spotify.com/user/siddyyy01";

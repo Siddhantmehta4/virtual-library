@@ -1378,10 +1378,12 @@ body.cam-moving .bay .spine { box-shadow: none; }
 /* the lamp is gone, and its glow with it */
 .lamp-glow { display: none !important; }
 /* the sheet in the typewriter shouldn't outshine the dim arch */
-.obj-typewriter { --grade: brightness(0.92) contrast(1.08) saturate(0.95) sepia(0.06); }
+.obj-typewriter { --grade: brightness(0.88) contrast(1.06) saturate(0.85); }
 
 /* ---------- phones ---------- */
 /* above the case there's no wall to hover, so the title stays put instead of fading away */
 body.ready .wall-title.top, body.ready .wall-title.top.faded { opacity: 0.85; }
 /* zoomed in, the bay's own plate sits on its moulding; the header doesn't need a second one */
 .zoom-plate { display: none; }
+/* the record player and sleeves were lit warmer than this arch: settle them into its light */
+.obj-speaker { --grade: brightness(0.86) contrast(1.06) saturate(0.82); }
