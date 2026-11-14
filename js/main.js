@@ -833,7 +833,7 @@ function addCard() {
   card.setAttribute("aria-label", "Recommend a book");
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
-  ink.append(el("span", "rn-1", "Recommend a book —"), el("span", "rn-2", "fly it to me!"));
+  ["Recommend", "a book —", "fly it", "to me!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
   $("objects").append(card);

@@ -186,8 +186,8 @@ div.obj { cursor: default; }
 }
 /* inside a lit bay: warm light straight down from the strip above */
 .zone-shelf {
-  --grade: brightness(0.95) contrast(1.05) saturate(0.9) sepia(0.2);
-  --light: linear-gradient(180deg, rgba(255, 196, 120, 0) 35%, rgba(50, 26, 10, 0.35));
+  --grade: brightness(1.18) contrast(1.06) saturate(1) sepia(0.1);
+  --light: linear-gradient(180deg, rgba(255, 200, 130, 0) 55%, rgba(50, 26, 10, 0.22));
 }
 /* on the floor: warm glow from the shelves behind, a reflection in the polished boards */
 .zone-floor {
@@ -1113,10 +1113,10 @@ body.plane-3d .obj-plane:hover { transform: none; }
 }
 .rec-note-ink {
   position: absolute;
-  inset: 20% 6% 10%;
+  inset: 17% 8% 8%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 2px;
   font-family: "Dancing Script", "Segoe Script", cursive;
@@ -1127,8 +1127,10 @@ body.plane-3d .obj-plane:hover { transform: none; }
   mix-blend-mode: multiply;
   transform: rotate(-3deg);
 }
-.rn-1 { font-size: 20px; white-space: nowrap; }
-.rn-2 { font-size: 20px; white-space: nowrap; margin-left: 22px; }
+.rn { font-size: 20px; white-space: nowrap; }
+.rn-2 { margin-left: 14px; }
+.rn-3 { margin-left: 4px; }
+.rn-4 { margin-left: 26px; }
 .rec-note-pin {
   position: absolute;
   left: 50%;
