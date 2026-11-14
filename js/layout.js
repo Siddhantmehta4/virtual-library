@@ -39,7 +39,7 @@ export const BOOK_K = 0.6;
 export const BAYS = BAY_GENRES.flatMap((genres, r) =>
   genres.map((genre, c) => ({
     genre,
-    reserve: genre === "Self-Help" ? 120 : genre === "Recommended" ? 160 : 0,
+    reserve: genre === "Self-Help" ? 120 : 0,
     row: r,
     col: c,
     lit: ROWS[r].lit,
@@ -87,9 +87,10 @@ export const OBJECTS = {
   // right arch: current read, pen dropped beside it at a casual angle
   book: { id: "book", x: 2010, base: 495, sink: 12, w: 220, h: 65, foot: 0.744, rot: -1.5, zone: "arch-right" },
   pen: { id: "pen", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
-  deck: { id: "deck", x: 690, base: 1490, w: 96, h: 68, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
-  plane: { id: "plane", x: 2280, base: 1478, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
+  deck: { id: "deck", x: 588, base: 1492, w: 128, h: 90, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
+  plane: { id: "plane", x: 2275, base: 1482, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
   // the note propped in the Recommended bay, tied by a string to the plane
-  card: { bay: "Recommended", inset: 104, w: 150, h: 114, rot: -4 },
+  // pinned to the front of the plinth at the bottom-right, half hanging over its lower edge
+  card: { x: 1925, top: 1392, w: 150, h: 112, rot: -3 },
 };

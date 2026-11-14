@@ -129,11 +129,12 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, onReady }) {
     const { size } = restFrame();
     const u = size; // path scaled to the plane's size so it reads the same on any screen
     // in screen space: up and left in front of the case, a wide turn, then back down to land
+    // a small hop: lift, a short curve out and back, and drop onto the same spot
     const pts = [
-      [0, 0, 0], [-0.5, 0.6, 0.3], [-2.5, 2.8, 0.8], [-5.5, 3.6, 1.2],
-      [-7, 2.6, 1.6], [-5.5, 1.6, 1.4], [-2.8, 1.2, 0.8], [-0.8, 0.4, 0.3], [0, 0, 0],
+      [0, 0, 0], [-0.35, 0.45, 0.2], [-1.0, 0.8, 0.4], [-1.45, 0.6, 0.4],
+      [-1.0, 0.3, 0.25], [-0.35, 0.08, 0.08], [0, 0, 0],
     ].map(([x, y, z]) => new THREE.Vector3(x * u, y * u, z * u));
-    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 5200 };
+    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 2600 };
   }
 
   const tmpQ = new THREE.Quaternion(), m4 = new THREE.Matrix4();

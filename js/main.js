@@ -822,23 +822,21 @@ function addPlant() {
   addCard();
 }
 
-// A torn note propped against the back of the Recommended bay; a string ties it to the plane.
+// A note pinned to the front of the plinth below Recommended; a string ties it to the plane.
 function addCard() {
   const C = OBJECTS.card;
-  const bay = state.bays.find((b) => b.home === C.bay);
-  if (!bay) return;
+  $("objects").querySelector(".rec-note")?.remove();
   const card = el("button", "rec-note");
   card.type = "button";
   card.setAttribute("aria-label", "Recommend a book");
-  const x = bay.w - C.inset, base = bay.base - bay.top + LIFT;
-  Object.assign(card.style, { left: `${x - C.w / 2}px`, top: `${base - C.h}px`, width: `${C.w}px`, height: `${C.h}px` });
+  Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   card.style.setProperty("--rot", `${C.rot}deg`);
   const ink = el("span", "rec-note-ink");
   ink.append(el("span", "rn-1", "Recommend a book"), el("span", "rn-2", "fly it to me"));
   const knot = el("span", "rec-note-knot");
-  card.append(el("span", "rec-note-shadow"), el("span", "rec-note-paper"), ink, knot);
+  card.append(el("span", "rec-note-shadow"), el("span", "rec-note-paper"), ink, el("span", "rec-note-pin"), knot);
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
-  bay.el.append(card);
+  $("objects").append(card);
   state.cardKnot = knot;
 }
 
