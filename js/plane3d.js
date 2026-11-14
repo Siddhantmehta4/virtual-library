@@ -195,7 +195,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
       tmpQ.copy(flyQ).slerp(restQ, THREE.MathUtils.smoothstep(t, 0.78, 1));
       plane.quaternion.copy(tmpQ);
       plane.position.copy(flight.abs ? p : base.clone().add(p));
-      if (flight.abs) plane.scale.setScalar(size * (0.45 + 0.55 * THREE.MathUtils.smoothstep(t, 0.55, 1)));
+      if (flight.abs) plane.scale.setScalar(size * (0.78 + 0.22 * THREE.MathUtils.smoothstep(t, 0.55, 1)));
       if (t >= 1) { flight = null; arrived = true; }
     } else {
       plane.quaternion.copy(restQ);
