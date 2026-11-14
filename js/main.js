@@ -207,7 +207,7 @@ function buildRoom() {
     const hit = el("div", "bay-hit");
     hit.style.top = `${LIFT}px`;
     hit.style.height = `${bay.base - bay.top}px`;
-    box.append(hit);
+    box.prepend(hit); // under the books, so a book (or the pile) always wins the pointer
     hit.addEventListener("click", () => { if (!state.zoom) openZoom(bay); });
     if (canHover) {
       hit.addEventListener("pointerenter", () => showBayCard(hit, bay));
@@ -224,7 +224,7 @@ function buildRoom() {
     layer.append(box);
 
     const plate = el("button", "plate");
-    plate.append(engrave(bay.genre, 132));
+    plate.append(engrave(bay.genre, 132), el("span", "plate-hit"));
     plate.type = "button";
     plate.style.left = `${bay.x + bay.w / 2}px`;
     plate.style.top = `${bay.board}px`;
@@ -273,13 +273,13 @@ function fillBay(bay, all) {
     });
     stack.addEventListener("click", (e) => { e.stopPropagation(); openZoom(bay); });
     if (canHover) {
-      stack.addEventListener("pointerenter", (e) => { e.stopPropagation(); labelFor(stack, `+${hidden} more on this shelf`); });
+      stack.addEventListener("pointerenter", (e) => { e.stopPropagation(); labelFor(stack.querySelector(".lbook") || stack, `+${hidden} more on this shelf`); });
       stack.addEventListener("pointerleave", hideCard);
     }
     row.append(stack);
   }
   row.style.paddingRight = bay.reserve ? `${bay.reserve + 8}px` : "";
-  row.style.width = all ? `${Math.max(total + 16 + (bay.reserve || 0), bayWindow(bay).w)}px` : "";
+  row.style.width = all ? `${Math.max(total + 16 + (bay.reserve || 0), bayWindow(bay).w - 2 * (bay.zpad || 0))}px` : "";
   bay.scroller.scrollLeft = 0;
   syncPerspective(bay);
 }
@@ -287,7 +287,8 @@ function fillBay(bay, all) {
 function syncPerspective(bay) {
   const s = bay.scroller;
   s.style.perspective = `${PERSPECTIVE}px`;
-  s.style.perspectiveOrigin = `${EYE.x - bayWindow(bay).x + s.scrollLeft}px ${EYE.y - (bay.top - LIFT)}px`;
+  const pad = state.zoom === bay ? bay.zpad || 0 : 0;
+  s.style.perspectiveOrigin = `${EYE.x - bayWindow(bay).x - pad + s.scrollLeft}px ${EYE.y - (bay.top - LIFT)}px`;
   if (state.zoom === bay) {
     const max = s.scrollWidth - s.clientWidth;
     bay.el.classList.toggle("fade-l", s.scrollLeft > 4);
@@ -321,11 +322,14 @@ function zoomTransform(bay) {
   const vw = innerWidth, vh = innerHeight;
   const head = 100;
   const h = bay.base - bay.top + LIFT;
+  // the close-up's whole frame (see SHELF_BACK) should fit on screen below the header
+  const k = (bay.base - bay.top) / (SHELF_BACK.stand - SHELF_BACK.top);
+  const fy0 = bay.top - (SHELF_BACK.top - SHELF_BACK.y0) * k, fH = (SHELF_BACK.y1 - SHELF_BACK.y0) * k;
+  const fit = Math.min((vw * 0.94) / (bay.w * 1.08), (vh - head - 56) / fH);
   const byHeight = ((vh - head) * 0.62) / h;
-  const byWidth = (vw * 0.9) / bay.w;
-  const s = Math.min(Math.max(byWidth, Math.min(byHeight, 2.4)), 3);
+  const s = Math.min(Math.max(fit, Math.min(byHeight, 2.4)), 3);
   const tx = vw / 2 - (bay.x + bay.w / 2) * s;
-  const ty = head + (vh - head) / 2 - (bay.top - LIFT + h / 2) * s;
+  const ty = head + (vh - head) / 2 - (fy0 + fH / 2) * s;
   return { s, tx, ty };
 }
 
@@ -428,11 +432,50 @@ function placeDepth(bay) {
   });
 }
 
-function placeCurtain(bay) {
-  const pad = 10;
+// Zoomed in, the bay is shown as a close-up photograph of one empty compartment
+// (assets/shelf, the same photo carved to two widths). Measured in that photo's pixels:
+// frame's inner edges at x = 100 and W - 90, the underside of the shelf above at y = 180,
+// books stand at y = 1040, the moulding (where the brass plate goes) is centred on y = 1120,
+// and the outer edge of the frame runs from y = 95 to 1170.
+const SHELF_BACK = {
+  side: { src: "assets/shelf/zoom-side.jpg", w: 2204 },
+  mid: { src: "assets/shelf/zoom-mid.jpg", w: 3012 },
+  h: 1280, l: 100, r: 90, top: 180, stand: 1040, plate: 1120, y0: 95, y1: 1170,
+};
+function shelfBackRect(bay) {
   const win = bayWindow(bay);
-  const x0 = win.x - pad, x1 = win.x + win.w + pad;
-  const y0 = bay.top - pad, y1 = bay.base + 28;
+  const B = SHELF_BACK, v = win.w < 570 ? B.side : B.mid;
+  const k = (bay.base - bay.top) / (B.stand - B.top);
+  const sx = win.w / (v.w - B.l - B.r);
+  const top = bay.top - B.top * k;
+  return {
+    v, k, left: win.x - B.l * sx, width: v.w * sx, top, height: B.h * k,
+    x0: win.x - B.l * sx, x1: win.x + win.w + B.r * sx, y0: top + B.y0 * k, y1: top + B.y1 * k,
+    plateY: top + B.plate * k,
+  };
+}
+function placeShelfBack(bay) {
+  const r = shelfBackRect(bay);
+  const back = $("shelfBack");
+  Object.assign(back.style, {
+    left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px`,
+    backgroundImage: `url("${r.v.src}")`,
+  });
+  // the brass plate moves down onto the moulding, where it sits in the close-up
+  bay.plateEl.style.top = `${r.plateY}px`;
+  // books stand clear of the side walls, which recede from the frame toward the back panel
+  bay.zpad = Math.round(130 * (r.width / r.v.w));
+  bay.el.style.setProperty("--zpad", `${bay.zpad}px`);
+}
+// both close-ups load quietly once the room is up, so the first zoom doesn't wait for them
+function preloadShelfBack() {
+  for (const v of [SHELF_BACK.side, SHELF_BACK.mid]) { const i = new Image(); i.src = v.src; }
+}
+
+function placeCurtain(bay) {
+  const r = shelfBackRect(bay);
+  const x0 = r.x0, x1 = r.x1;
+  const y0 = r.y0, y1 = r.y1;
   const big = 1400;
   const parts = $("curtain").children;
   const rects = [
@@ -453,8 +496,10 @@ function openZoom(bay) {
   hideCard();
   state.zoom = bay;
   sizeBayBox(bay);
+  placeShelfBack(bay);
   fillBay(bay, true);
   bay.el.classList.add("zoomed");
+  bay.plateEl.classList.add("current");
   placeCurtain(bay);
   placeDepth(bay);
   $("scene").classList.add("zooming");
@@ -474,6 +519,8 @@ function closeZoom(quick) {
   closeTsundoku(bay);
   sizeBayBox(bay);
   bay.el.classList.remove("zoomed", "fade-l", "fade-r");
+  bay.plateEl.style.top = `${bay.board}px`;
+  bay.plateEl.classList.remove("current");
   fillBay(bay, false);
   $("zoomHead").classList.remove("on");
   if (!quick) {
@@ -848,7 +895,7 @@ function addCard() {
   card.setAttribute("aria-label", "Recommend a book");
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
-  ["Use the paper", "plane to", "recommend", "me a book!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
+  ["Click to", "recommend", "a book"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
   // the lifted lower edge: a deeper shadow there, the paper curving away from the wood
   card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
@@ -1329,15 +1376,20 @@ async function sendRec() {
   $("recSend").disabled = true;
   err.textContent = "";
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/recommend`, {
+    // straight into the database, through the same door the site already reads books from
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/recommend_book`, {
       method: "POST",
       headers: { "content-type": "application/json", apikey: SUPABASE_KEY },
-      body: JSON.stringify({ ...recPick, recommender: name, note, website: $("recHp").value }),
+      body: JSON.stringify({
+        p_recommender: name, p_title: recPick.title, p_author: recPick.author || "", p_note: note,
+        p_cover: recPick.cover || "", p_year: Number.isInteger(recPick.year) ? recPick.year : null,
+        p_ol_key: recPick.ol_key || "", p_website: $("recHp").value,
+      }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
       console.warn("recommend failed", res.status, data);
-      throw new Error(data.error || (res.status === 401 ? "The recommend slot is locked (401)." : res.status === 404 ? "The recommend slot isn't set up yet (404)." : `Couldn't send it (${res.status}).`));
+      throw new Error(data.error || (res.status === 404 ? "The recommend slot isn't set up yet (404)." : `Couldn't send it (${res.status}${data.message ? ": " + data.message : ""}).`));
     }
     closeRecForm({ ...recPick, recommender: name, note: null });
   } catch (e) {
@@ -1421,6 +1473,7 @@ addEventListener("resize", () => {
     if (state.lightsOff) lightsOn();
     if (state.zoom) {
       sizeBayBox(state.zoom);
+      placeShelfBack(state.zoom);
       placeCurtain(state.zoom);
       placeDepth(state.zoom);
       syncPerspective(state.zoom);
@@ -1454,6 +1507,7 @@ async function boot() {
     document.body.classList.add("ready");
     setupTitle();
     startPlane3D();
+    setTimeout(preloadShelfBack, 4000);
   } catch (err) {
     console.error(err);
     $("status").textContent = "The library is closed for a moment. Try again shortly.";

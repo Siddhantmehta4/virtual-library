@@ -285,7 +285,7 @@ div.obj { cursor: default; }
   scrollbar-width: none;
 }
 .bay-scroll::-webkit-scrollbar { display: none; }
-.bay.zoomed .bay-scroll { overflow-x: auto; }
+.bay.zoomed .bay-scroll { overflow-x: auto; left: var(--zpad, 0px); right: var(--zpad, 0px); }
 .bay.zoomed.fade-r .bay-scroll { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
 .bay.zoomed.fade-l .bay-scroll { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%); mask-image: linear-gradient(90deg, transparent, #000 10%); }
 .bay.zoomed.fade-l.fade-r .bay-scroll { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
@@ -303,7 +303,9 @@ div.obj { cursor: default; }
   transform: translateZ(-34px);
   pointer-events: none;
 }
-.bay-row .book, .bay-row .stack { pointer-events: auto; }
+.bay-row .book { pointer-events: auto; }
+/* only the pile itself answers the pointer, not the empty air above it */
+.bay-row .stack { pointer-events: none; }
 
 /* brass name plates: a photographed plate, with the name engraved into its band */
 .plate {
@@ -346,7 +348,17 @@ div.obj { cursor: default; }
   background: rgba(0, 0, 0, 0.1);
   transition: opacity 0.8s ease 0.3s;
 }
-.scene.zooming .depth { opacity: 1; }
+.scene.zooming .depth { opacity: 0; }
+/* zoomed: a close-up photograph of the compartment replaces the room photo's soft enlargement */
+.shelf-back {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  background: center / 100% 100% no-repeat;
+  transition: opacity 0.6s ease 0.25s;
+}
+.scene.zooming .shelf-back { opacity: 1; }
+body.cam-moving .shelf-back { transition-delay: 0.25s; }
 
 /* zoom curtain: dims and softens everything except the chosen bay */
 .curtain > div {
@@ -1169,10 +1181,10 @@ body.plane-3d .obj-plane:hover { transform: none; }
   line-height: 1.04;
   color: #1b2230;
 }
-.rn { font-size: 18px; white-space: nowrap; }
-.rn-2 { margin-left: 16px; }
-.rn-3 { margin-left: 4px; }
-.rn-4 { margin-left: 14px; }
+.rn { font-size: 22px; white-space: nowrap; }
+.rn-1 { margin-left: 6px; }
+.rn-2 { margin-left: 0; }
+.rn-3 { margin-left: 22px; }
 .rec-note-pin {
   position: absolute;
   left: 50%;
@@ -1216,17 +1228,29 @@ body.lights-off .rec-note { filter: brightness(0.28); }
   box-shadow: inset 14px 0 18px -10px rgba(0, 0, 0, 0.7), inset -14px 0 18px -10px rgba(0, 0, 0, 0.7);
   transition: opacity 0.7s ease 0.35s;
 }
-.bay.zoomed .zoom-back { opacity: 1; }
+.bay.zoomed .zoom-back { opacity: 0; }
 
 /* during camera moves, drop the per-frame-expensive shadows; they return when it settles */
 body.cam-moving .obj img, body.cam-moving .plate { filter: none !important; }
 body.cam-moving .bay .spine { box-shadow: none; }
 
 .book > .b3d, .book > .b3d * { pointer-events: none; }
-.stack .lbook { pointer-events: none; }
+.stack .lbook { pointer-events: auto; }
+.stack .lbook * { pointer-events: none; }
 /* a generous target for the paper plane on the floor */
 .obj-plane::before { content: ""; position: absolute; inset: -22px -18px -14px -18px; }
 
 /* a book that has just been sent settles onto the Recommended shelf */
 .book.arrived .b3d { animation: arrive 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.05) both; }
 @keyframes arrive { from { opacity: 0; transform: translateY(-40px) translateZ(60px); } to { opacity: 1; transform: none; } }
+
+/* zoomed: only the chosen bay's plate shows; the note on the upright steps out of the close-up */
+.plate { transition: transform 0.9s cubic-bezier(0.65, 0, 0.25, 1), opacity 0.5s ease; }
+.scene.zooming .plate:not(.current) { opacity: 0; pointer-events: none; }
+.scene.zooming .rec-note { opacity: 0; }
+.rec-note { transition: opacity 0.5s ease; }
+/* the plate image has wide transparent margins: only the brass itself answers the pointer,
+   so the books just above it stay easy to point at */
+.plate { pointer-events: none; }
+.plate-hit { position: absolute; inset: 30% 16% 26%; pointer-events: auto; }
+.scene.zooming .plate:not(.current) .plate-hit { pointer-events: none; }

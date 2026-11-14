@@ -68,6 +68,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
   mat.transparent = true;
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
+  mesh.renderOrder = 2;
   // a crumpled nose: pinch the tip a little
   mesh.scale.set(1, 1, 1);
   const plane = new THREE.Group();
@@ -100,6 +101,10 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
   // ---------- floor: invisible except for the shadow ----------
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.5 }));
   floor.receiveShadow = true;
+  // the shadow is painted first and never hides the paper: both are transparent, and letting the
+  // floor write depth made the plane vanish or tear along the edge where it meets the floor
+  floor.material.depthWrite = false;
+  floor.renderOrder = 0;
   scene.add(floor);
 
   // ---------- mapping screen pixels to the 3D world ----------
@@ -160,7 +165,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 3600, abs: true };
   }
   function flyOnce() { flyIn(); }
-  function arriveNow() { arrived = true; }
+  function arriveNow() { arrived = true; lift = 0.05; }
 
   // facing the viewer, laid flat, nose up: how the plane looks the moment it becomes the sheet
   const faceQ = new THREE.Quaternion().setFromRotationMatrix(
