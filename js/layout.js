@@ -88,8 +88,9 @@ export const OBJECTS = {
   // right arch: the pen dropped beside the reading pile at a casual angle
   // the current read on top of a short pile of books (built from the library itself)
   stack: { x: 2018, base: 495, sink: 9 },
-  // centre arch: the cream typewriter, on its own
-  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1432, base: 495, sink: 2, w: 184, h: 98, zone: "arch-right" },
+  // centre arch: the cream typewriter, and a small framed photograph leaning on the back panel
+  frame: { id: "frame", img: "photo-frame", x: 1606, base: 495, sink: 3, w: 84, h: 119, zone: "arch-right" },
+  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1378, base: 495, sink: 2, w: 184, h: 98, zone: "arch-right" },
   // right arch: the record player, and the sleeves leaning on the arch's right wall
   speaker: { id: "speaker", img: "arch-player", x: 2000, base: 495, sink: 3, w: 165, h: 152, zone: "arch-right" },
   sleeves: { id: "sleeves", img: "arch-sleeves", x: 2237, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },

@@ -1390,3 +1390,6 @@ body.ready .wall-title.top, body.ready .wall-title.top.faded { opacity: 0.85; }
 .zoom-plate { display: none; }
 /* the record player and sleeves were lit warmer than this arch: settle them into its light */
 .obj-speaker { --grade: brightness(0.86) contrast(1.06) saturate(0.82); }
+/* the frame leans back against the panel: the top tips away, so it's a touch shorter than it is tall */
+.obj-frame img { transform: perspective(300px) rotateX(9deg); transform-origin: 50% 100%; }
+.obj-frame { --grade: brightness(0.9) contrast(1.05) saturate(0.9); }
