@@ -131,10 +131,10 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, onReady }) {
     // in screen space: up and left in front of the case, a wide turn, then back down to land
     // a small hop: lift, a short curve out and back, and drop onto the same spot
     const pts = [
-      [0, 0, 0], [-0.22, 0.42, 0.15], [-0.68, 0.7, 0.3], [-1.0, 0.52, 0.3],
-      [-0.7, 0.24, 0.18], [-0.22, 0.05, 0.05], [0, 0, 0],
+      [0, 0, 0], [-0.28, 0.48, 0.18], [-0.85, 0.82, 0.36], [-1.28, 0.62, 0.36],
+      [-0.9, 0.28, 0.22], [-0.28, 0.06, 0.06], [0, 0, 0],
     ].map(([x, y, z]) => new THREE.Vector3(x * u, y * u, z * u));
-    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 2400 };
+    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 2600 };
   }
 
   const tmpQ = new THREE.Quaternion(), m4 = new THREE.Matrix4();

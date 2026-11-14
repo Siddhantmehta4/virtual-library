@@ -80,7 +80,7 @@ export const TITLE = {
 // behind the board's front edge (shelf line y≈495). sink = how far below that line the base really is.
 export const OBJECTS = {
   // left arch: holder a little left of centre and forward, hourglass set further back and turned slightly
-  glasses: { id: "glasses", x: 712, base: 495, sink: 9, w: 86, h: 148, zone: "arch-left" },
+  glasses: { id: "glasses", x: 712, base: 495, sink: 9, w: 104, h: 148, zone: "arch-left" },
   hourglass: { id: "hourglass", x: 866, base: 495, sink: 17, w: 77, h: 146, rot: 2, zone: "arch-left" },
   // centre arch: lamp a touch off-centre, as if pushed aside
   lamp: { id: "lamp", x: 1392, base: 495, sink: 10, w: 172, h: 204, zone: "lamp" },
@@ -92,6 +92,6 @@ export const OBJECTS = {
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
   // the note propped in the Recommended bay, tied by a string to the plane
   // pinned to the front of the plinth at the bottom-right, half hanging over its lower edge
-  // stuck to the inside right wall of the Recommended bay, curling out past its front edge
-  card: { edge: 2345, top: 1222, h: 118, back: 72, front: 162 },
+  // flat sticky note, tacked to the middle of the case's right-hand upright: half over the bay, half over the wall
+  card: { x: 2362, top: 1218, w: 172, h: 136 },
 };

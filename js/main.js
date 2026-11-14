@@ -824,23 +824,17 @@ function addPlant() {
   addCard();
 }
 
-// A sticky note: its back half stuck to the inside right wall of the Recommended bay,
-// its front half curling out past the wall's front edge toward the room.
+// A sticky note tacked flat to the middle of the case's right-hand upright.
 function addCard() {
   const C = OBJECTS.card;
   $("objects").querySelector(".rec-note")?.remove();
   const card = el("button", "rec-note");
   card.type = "button";
   card.setAttribute("aria-label", "Recommend a book");
-  Object.assign(card.style, { left: `${C.edge}px`, top: `${C.top}px`, height: `${C.h}px` });
-  const back = el("span", "rn-back");
-  back.style.width = `${C.back}px`;
-  const front = el("span", "rn-front");
-  front.style.width = `${C.front}px`;
+  Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
   ink.append(el("span", "rn-1", "Recommend a book —"), el("span", "rn-2", "fly it to me!"));
-  front.append(ink);
-  card.append(back, front);
+  card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
   $("objects").append(card);
 }
