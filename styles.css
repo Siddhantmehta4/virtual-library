@@ -439,10 +439,13 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 .front-shade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.15) 30%, rgba(0, 0, 0, 0.35));
+  /* the board's hinge in shade, then the light catching the glossy card across the cover */
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.16) 42%, rgba(255, 255, 255, 0) 56%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.04) 18%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.12));
   transition: opacity 0.6s ease;
 }
-.book:hover .front-shade, .book:focus-visible .front-shade { opacity: 0.45; }
+.book:hover .front-shade, .book:focus-visible .front-shade { opacity: 0.8; }
 .book:focus-visible .spine { outline: 2px solid var(--brass-1); outline-offset: 2px; }
 
 .spine {
@@ -572,16 +575,19 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 /* light from the LED strip above lit rows; the bottom row sits in shadow */
 .light { position: absolute; inset: 0; pointer-events: none; }
 .lit .light {
-  background: linear-gradient(180deg, rgba(255, 178, 100, 0.34), rgba(255, 160, 80, 0.1) 22%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.42) 100%);
+  /* the strip above warms the tops a little; the foot sits a touch deeper in the shelf */
+  background: linear-gradient(180deg, rgba(255, 196, 130, 0.22), rgba(255, 190, 120, 0.06) 20%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.16) 100%);
+  mix-blend-mode: normal;
 }
 .unlit .light {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55));
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.34));
 }
 .bay .spine { box-shadow: 2px 0 3px rgba(0, 0, 0, 0.5); }
-.lit .pages { filter: brightness(0.72) sepia(0.35); }
+.lit .pages { filter: brightness(0.86) sepia(0.25); }
 .unlit .pages { filter: brightness(0.4) sepia(0.2); }
 
-/* ---------- hover card: plain, crisp, off-white; serif title over small typewriter facts ---------- */
+/* ---------- hover card: smoked glass. The room shows through, softly blurred, with a faint
+   light along the top edge; serif title over small typewriter facts ---------- */
 .hover-card {
   position: fixed;
   z-index: 300;
@@ -589,20 +595,23 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
   top: 0;
   max-width: 270px;
   padding: 13px 18px 12px;
-  border-radius: 3px;
-  background: #f3f1ec;
-  color: #2b2722;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 10px 28px rgba(0, 0, 0, 0.32);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(58, 46, 34, 0.62), rgba(22, 17, 12, 0.72));
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+  border: 1px solid rgba(255, 238, 210, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 215, 0.16), 0 12px 30px rgba(0, 0, 0, 0.45);
+  color: #f3ead9;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease;
 }
 .hover-card.on { opacity: 1; }
 .hover-card p { margin: 0; }
-.hc-title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 23px; line-height: 1.12; }
-.hc-author { font-family: "Karla", sans-serif; font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #4c463e; margin-top: 7px !important; }
-.hc-facts, .hc-meta { font-family: "Space Mono", monospace; font-size: 12.5px; color: #5d574e; margin-top: 7px !important; }
-.hc-meta { color: #7b7468; margin-top: 4px !important; }
+.hc-title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 23px; line-height: 1.12; color: #fbf4e6; }
+.hc-author { font-family: "Karla", sans-serif; font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(243, 234, 217, 0.82); margin-top: 7px !important; }
+.hc-facts, .hc-meta { font-family: "Space Mono", monospace; font-size: 12.5px; color: rgba(243, 234, 217, 0.7); margin-top: 7px !important; }
+.hc-meta { color: rgba(243, 234, 217, 0.58); margin-top: 4px !important; }
 .bay-card .hc-title { font-size: 20px; }
 .bay-card .hc-facts { margin-top: 3px !important; }
 .bay-card { padding: 9px 15px 9px; }
@@ -1074,7 +1083,7 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 196, 130, 0.28), rgba(255, 196, 130, 0) 30%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.45));
+  background: linear-gradient(180deg, rgba(255, 196, 130, 0.28), rgba(255, 196, 130, 0) 30%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.22));
 }
 .unlit .lbook-light { background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.55)); }
 .stack .lbook + .lbook { margin-top: -1px; }
@@ -1137,20 +1146,19 @@ body.plane-3d .obj-plane:hover { transform: none; }
 .rec-note:hover .rec-note-gap { transform: translate(7px, 7px); }
 .rec-note-ink {
   position: absolute;
-  inset: 18% 8% 8% 9%;
+  inset: 14% 6% 6% 6%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 1px;
+  text-align: center;
+  gap: 0;
   font-family: "Dancing Script", "Segoe Script", cursive;
   font-weight: 700;
   line-height: 1.04;
   color: #1b2230;
 }
-.rn { font-size: 22px; white-space: nowrap; }
-.rn-1 { margin-left: 16px; }
-.rn-2 { margin-left: 0; }
+.rn { font-size: 19px; white-space: nowrap; }
 
 .rec-note-pin {
   position: absolute;

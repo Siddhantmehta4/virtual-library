@@ -3,7 +3,9 @@
 // Spines are painted at 3x their shelf size, so the browser shrinks them smoothly in the overview
 // (titles soften like print seen across a room) and they stay crisp when a shelf is zoomed.
 
-const R = 2.4; // render scale (canvas px per book px)
+// render scale (canvas px per book px): enough that a zoomed shelf on a retina screen shows the
+// spine at (or above) its painted size, so lettering and cover art stay sharp
+const R = (globalThis.devicePixelRatio || 1) > 1.2 ? 3.4 : 2.2;
 
 const FONTS = [
   { title: "600 {s}px Cinzel", caps: true, author: "500 {s}px 'EB Garamond'" },
@@ -39,11 +41,37 @@ function cover(url, id) {
   if (!img) {
     img = new Image();
     img.decoding = "async";
-    img.src = url.replace("-L.jpg", "-M.jpg");
-    covers.set(url, img);
+    // read with CORS when the host allows it (then the spine can measure the art it sits on);
+    // otherwise load it plainly, which still paints fine
+    img.crossOrigin = "anonymous";
+    img.onerror = () => {
+      const plain = new Image();
+      plain.decoding = "async";
+      plain.onload = () => redrawBook(id);
+      plain.src = img.src;
+      covers.set(url, plain);
+    };
     img.onload = () => redrawBook(id);
+    img.src = url.replace("-M.jpg", "-L.jpg");
+    covers.set(url, img);
   }
   return img.complete && img.naturalWidth ? img : null;
+}
+
+// the average colour of the strip of art the spine is cut from (null if the cover's host
+// doesn't allow reading it)
+function stripTone(img, sx, sw) {
+  try {
+    const c = document.createElement("canvas");
+    c.width = 8; c.height = 32;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    g.drawImage(img, sx, 0, sw, img.naturalHeight, 0, 0, 8, 32);
+    const d = g.getImageData(0, 0, 8, 32).data;
+    let r = 0, gg = 0, b = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; b += d[i + 2]; }
+    const n = d.length / 4;
+    return [r / n, gg / n, b / n];
+  } catch { return null; }
 }
 
 function hash(s) {
@@ -155,27 +183,39 @@ function paint(entry) {
 
   const base = rgb(b.spine);
   const band = b.band ? rgb(b.band) : mix(base, lum(base) > 0.5 ? [40, 30, 20] : [230, 210, 170], 0.45);
-  const dark = lum(base) < 0.42;
-  const ink = dark ? [244, 236, 220] : [30, 24, 18];
-  const gold = [214, 178, 104];
+  const gold = [222, 188, 112];
 
   g.save();
   g.clearRect(0, 0, W, H);
 
-  // 1. base: the cover's own colours, softened, under the spine colour
+  // 1. the cover's own art wraps round onto the spine: the strip at the cover's left edge,
+  // scaled to the spine's height, so every book carries its real colours and imagery
   g.fillStyle = css(base);
   g.fillRect(0, 0, W, H);
   const img = cover(b.cover, b.id);
+  let tone = null;
   if (img) {
+    const scale = img.naturalHeight / H;
+    const sw = Math.min(img.naturalWidth * 0.5, W * scale);
+    const sx = Math.min(img.naturalWidth * 0.015, img.naturalWidth - sw);
     g.save();
-    g.filter = `blur(${Math.max(2, W * 0.06)}px) saturate(1.05)`;
-    g.globalAlpha = 0.32;
-    const sw = Math.max(2, img.naturalWidth * 0.08);
-    g.drawImage(img, 0, 0, sw, img.naturalHeight, -W * 0.2, -H * 0.05, W * 1.4, H * 1.1);
+    g.filter = "saturate(1.12) contrast(1.04)";
+    g.drawImage(img, sx, 0, sw, img.naturalHeight, 0, 0, W, H);
     g.restore();
-    g.fillStyle = css(base, 0.55);
+    tone = stripTone(img, sx, sw);
+    // a light settle of the spine colour, so the lettering reads as printed on top of the art
+    g.fillStyle = css(tone || base, 0.28);
     g.fillRect(0, 0, W, H);
+    // a little more of it behind the title, so the cover's own lettering sinks back
+    const z = g.createLinearGradient(0, H * 0.06, 0, H * 0.78);
+    const c0 = css(tone || base, 0), c1 = css(tone || base, 0.5);
+    z.addColorStop(0, c0); z.addColorStop(0.12, c1); z.addColorStop(0.88, c1); z.addColorStop(1, c0);
+    g.fillStyle = z;
+    g.fillRect(0, H * 0.06, W, H * 0.72);
   }
+  const ground = tone || base;
+  const dark = lum(ground) < 0.5;
+  const ink = dark ? [248, 242, 230] : [26, 21, 16];
 
   // 2. layout style
   const font = FONTS[pick(1) % FONTS.length];
@@ -236,6 +276,8 @@ function paint(entry) {
   }
   setF(fs);
   const lh = fs * 1.05;
+  // a soft halo in the opposite tone keeps lettering readable over busy art
+  const halo = (c) => { g.shadowColor = lum(c) > 0.5 ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.3)"; g.shadowBlur = R * 1.6; };
   lines.forEach((line, i) => {
     const lw = Math.min(lenT, g.measureText(line).width);
     g.save();
@@ -243,6 +285,7 @@ function paint(entry) {
     g.rotate(Math.PI / 2);
     g.textBaseline = "middle";
     g.fillStyle = css(titleInk);
+    if (img && style !== 1) halo(titleInk);
     g.fillText(line, 0, 0);
     g.restore();
   });
@@ -260,7 +303,8 @@ function paint(entry) {
     g.translate(W / 2, A0 + (A1 - A0 - Math.min(A1 - A0, g.measureText(name).width)) / 2);
     g.rotate(Math.PI / 2);
     g.textBaseline = "middle";
-    g.fillStyle = css(authorInk, 0.92);
+    g.fillStyle = css(authorInk, 0.95);
+    if (img && style !== 2) halo(authorInk);
     g.fillText(name, 0, 0);
     g.restore();
   }
@@ -275,61 +319,65 @@ function paint(entry) {
   else if (pick(3) % 3 === 1) { g.fillRect(W / 2 - mk / 2, my - mk / 4, mk, mk / 2); }
   else { g.beginPath(); g.moveTo(W / 2, my - mk / 2); g.lineTo(W / 2 + mk / 2, my + mk / 3); g.lineTo(W / 2 - mk / 2, my + mk / 3); g.closePath(); g.stroke(); }
 
-  // 6. material: woven cloth, paper fibre, or a gloss highlight
+  // 6. material, kept faint so it reads as surface rather than dust
   g.save();
-  if (b.finish === "cloth") {
-    const t = tex(CLOTHS[h % CLOTHS.length]);
-    if (t.complete && t.naturalWidth) {
-      g.globalCompositeOperation = "overlay";
-      g.globalAlpha = 0.55;
-      g.fillStyle = g.createPattern(t, "repeat");
-      g.setTransform(R * 0.35, 0, 0, R * 0.35, 0, 0);
-      g.fillRect(0, 0, W / (R * 0.35), H / (R * 0.35));
-    }
-  } else {
-    const t = tex("paper-matte");
-    if (t.complete && t.naturalWidth) {
-      g.globalCompositeOperation = "overlay";
-      g.globalAlpha = b.finish === "gloss" ? 0.15 : 0.35;
-      g.fillStyle = g.createPattern(t, "repeat");
-      g.setTransform(R * 0.4, 0, 0, R * 0.4, 0, 0);
-      g.fillRect(0, 0, W / (R * 0.4), H / (R * 0.4));
-    }
+  const t = tex(b.finish === "cloth" ? CLOTHS[h % CLOTHS.length] : "paper-matte");
+  if (t.complete && t.naturalWidth) {
+    g.globalCompositeOperation = "overlay";
+    g.globalAlpha = b.finish === "cloth" ? 0.32 : b.finish === "gloss" ? 0.05 : 0.14;
+    const ts = R * (b.finish === "cloth" ? 0.35 : 0.4);
+    g.fillStyle = g.createPattern(t, "repeat");
+    g.setTransform(ts, 0, 0, ts, 0, 0);
+    g.fillRect(0, 0, W / ts, H / ts);
   }
   g.restore();
 
-  // 7. a rounded spine: light on the curve, falling into shadow at both edges
+  // 7. a rounded spine under a soft light from the upper left: a broad lit crown,
+  // edges turning away into shade, and on glossy card a crisp highlight with a soft bloom
   const hard = b.binding === "hardcover";
   const sh = g.createLinearGradient(0, 0, W, 0);
-  sh.addColorStop(0, `rgba(0,0,0,${hard ? 0.55 : 0.4})`);
-  sh.addColorStop(0.16, "rgba(0,0,0,0.05)");
-  sh.addColorStop(0.32, "rgba(0,0,0,0)");
-  sh.addColorStop(0.72, "rgba(0,0,0,0.06)");
-  sh.addColorStop(1, `rgba(0,0,0,${hard ? 0.6 : 0.45})`);
+  sh.addColorStop(0, `rgba(0,0,0,${hard ? 0.42 : 0.3})`);
+  sh.addColorStop(0.12, "rgba(0,0,0,0.04)");
+  sh.addColorStop(0.3, "rgba(0,0,0,0)");
+  sh.addColorStop(0.78, "rgba(0,0,0,0.05)");
+  sh.addColorStop(1, `rgba(0,0,0,${hard ? 0.46 : 0.34})`);
   g.fillStyle = sh;
   g.fillRect(0, 0, W, H);
+  g.save();
+  g.globalCompositeOperation = "soft-light";
+  const crown = g.createLinearGradient(0, 0, W, 0);
+  crown.addColorStop(0.1, "rgba(255,255,255,0)");
+  crown.addColorStop(0.34, "rgba(255,255,255,0.55)");
+  crown.addColorStop(0.62, "rgba(255,255,255,0)");
+  g.fillStyle = crown;
+  g.fillRect(0, 0, W, H);
+  g.restore();
+  const gloss = b.finish === "gloss" ? 1 : b.finish === "matte" ? 0.45 : hard ? 0.3 : 0.2;
   const hi = g.createLinearGradient(0, 0, W, 0);
-  const spec = b.finish === "gloss" ? 0.32 : hard ? 0.14 : 0.1;
-  hi.addColorStop(0.18, "rgba(255,240,215,0)");
-  hi.addColorStop(0.3, `rgba(255,240,215,${spec})`);
-  hi.addColorStop(0.42, "rgba(255,240,215,0)");
+  hi.addColorStop(0.2, "rgba(255,252,245,0)");
+  hi.addColorStop(0.29, `rgba(255,252,245,${(0.16 * gloss).toFixed(3)})`);
+  hi.addColorStop(0.315, `rgba(255,252,245,${(0.42 * gloss).toFixed(3)})`);
+  hi.addColorStop(0.34, `rgba(255,252,245,${(0.16 * gloss).toFixed(3)})`);
+  hi.addColorStop(0.46, "rgba(255,252,245,0)");
   g.fillStyle = hi;
   g.fillRect(0, 0, W, H);
-
-  // 8. wear at the head, and the darker foot where the book meets the shelf
-  if (b.wear > 0.05) {
-    const wr = g.createLinearGradient(0, 0, 0, H * 0.06);
-    wr.addColorStop(0, `rgba(255,236,200,${(b.wear * 0.5).toFixed(2)})`);
-    wr.addColorStop(1, "rgba(255,236,200,0)");
-    g.fillStyle = wr;
-    g.fillRect(0, 0, W, H * 0.06);
-  }
-  const ao = g.createLinearGradient(0, H * 0.9, 0, H);
-  ao.addColorStop(0, "rgba(0,0,0,0)");
-  ao.addColorStop(1, "rgba(0,0,0,0.35)");
-  g.fillStyle = ao;
-  g.fillRect(0, H * 0.9, W, H * 0.1);
-  g.fillStyle = "rgba(0,0,0,0.09)";
+  // the light falls off a little toward the foot
+  const fall = g.createLinearGradient(0, 0, 0, H);
+  fall.addColorStop(0, "rgba(255,248,236,0.06)");
+  fall.addColorStop(0.5, "rgba(0,0,0,0)");
+  fall.addColorStop(1, "rgba(0,0,0,0.12)");
+  g.fillStyle = fall;
   g.fillRect(0, 0, W, H);
+
+  // 8. a little wear at the head, a crisp edge where the spine meets the boards
+  if (b.wear > 0.05) {
+    const wr = g.createLinearGradient(0, 0, 0, H * 0.05);
+    wr.addColorStop(0, `rgba(255,240,215,${(b.wear * 0.35).toFixed(2)})`);
+    wr.addColorStop(1, "rgba(255,240,215,0)");
+    g.fillStyle = wr;
+    g.fillRect(0, 0, W, H * 0.05);
+  }
+  g.fillStyle = "rgba(255,255,255,0.10)";
+  g.fillRect(0, 0, W, Math.max(1, R * 0.5));
   g.restore();
 }
