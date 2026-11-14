@@ -91,13 +91,13 @@ export const OBJECTS = {
   // centre arch: the cream typewriter, then two small framed photographs leaning on the back panel
   frame1: { id: "frame1", img: "frame-photo-1", photo: "assets/photos/photo-1.jpg", x: 1472, base: 495, sink: 3, w: 115, h: 115, zone: "arch-right" },
   frame2: { id: "frame2", img: "frame-photo-2", photo: "assets/photos/photo-2.jpg", x: 1606, base: 495, sink: 3, w: 127, h: 113, zone: "arch-right" },
-  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1300, base: 495, sink: 2, w: 193, h: 103, zone: "arch-right" },
+  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1268, base: 495, sink: 2, w: 193, h: 103, zone: "arch-right" },
   // right arch: the record player, and the sleeves leaning on the arch's right wall
-  speaker: { id: "speaker", img: "arch-player", x: 2000, base: 495, sink: 3, w: 165, h: 152, zone: "arch-right" },
+  speaker: { id: "speaker", img: "arch-player", x: 1972, base: 495, sink: 3, w: 165, h: 152, zone: "arch-right" },
   sleeves: { id: "sleeves", img: "arch-sleeves", x: 2226, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   // on the floor against the left wall: a Les Paul on its stand, its right edge catching the shelves' glow
-  guitar: { id: "guitar", img: "guitar-upright", x: 262, base: 1500, w: 245, h: 650, foot: 0.985, zone: "floor" },
+  guitar: { id: "guitar", img: "guitar-front", x: 262, base: 1500, w: 239, h: 650, foot: 0.985, zone: "floor" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
