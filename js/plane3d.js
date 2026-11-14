@@ -135,21 +135,24 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     const nc = n ? toWorld(n.x, n.y) : base.clone().add(new THREE.Vector3(size, size * 3, 0));
     const R = Math.max(size * 1.1, n ? n.r * 0.95 : size);
     const W = (x, y) => toWorld(x, y);
+    // in through the right-hand edge at mid-height, a long smooth glide down, a dip just
+    // before the note, one loop around it, and an easy glide onto its spot. Depth stays shallow,
+    // so it never swells toward the camera and stays at its landed size.
+    const zz = size * 0.15;
     const pts = [
-      W(vw + size * 2, vh * 0.30).setZ(size * 1.5),          // outside the window
-      W(vw * 0.90, vh * 0.24).setZ(size * 2.2),
-      W(vw * 0.80, vh * 0.34).setZ(size * 2.8),              // a lazy dip and twist
-      nc.clone().add(new THREE.Vector3(R * 1.1, R * 1.5, size * 2.2)),
-      nc.clone().add(new THREE.Vector3(-R * 0.4, R * 1.3, size * 1.8)), // over the note
-      nc.clone().add(new THREE.Vector3(-R * 1.4, R * 0.1, size * 2.0)), // round its left side
-      nc.clone().add(new THREE.Vector3(-R * 0.5, -R * 0.85, size * 2.4)),// under it
-      nc.clone().add(new THREE.Vector3(R * 1.25, -R * 0.35, size * 2.0)),// back up its right
-      nc.clone().lerp(base, 0.6).add(new THREE.Vector3(R * 1.0, 0, size * 1.3)),
-      base.clone().add(new THREE.Vector3(size * 1.2, size * 0.5, size * 0.4)), // glide down
-      base.clone().add(new THREE.Vector3(size * 0.35, size * 0.08, size * 0.1)),
+      W(vw + size * 2, vh * 0.5).setZ(zz),
+      W(vw * 0.93, vh * 0.54).setZ(zz),
+      W(vw * 0.86, vh * 0.62).setZ(zz),
+      nc.clone().add(new THREE.Vector3(R * 2.0, R * 0.3, zz)),          // dips in just before the note
+      nc.clone().add(new THREE.Vector3(R * 0.2, R * 1.25, zz)),         // over the top
+      nc.clone().add(new THREE.Vector3(-R * 1.3, R * 0.1, zz)),         // round its left side
+      nc.clone().add(new THREE.Vector3(-R * 0.3, -R * 1.15, zz)),       // under it
+      nc.clone().add(new THREE.Vector3(R * 1.25, -R * 0.45, zz)),       // back up its right
+      nc.clone().lerp(base, 0.65).add(new THREE.Vector3(R * 0.9, 0, zz)),
+      base.clone().add(new THREE.Vector3(size * 0.5, size * 0.12, 0)),
       base.clone(),
     ];
-    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 7200, abs: true };
+    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 6800, abs: true };
   }
   function flyOnce() { flyIn(); }
   function arriveNow() { arrived = true; }

@@ -333,7 +333,7 @@ div.obj { cursor: default; }
   background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 -1px 0 rgba(20, 12, 2, 0.9), 0 1px 0 rgba(255, 238, 190, 0.28);
-  transform: translateY(0.05em);
+  transform: translateY(0.16em);
 }
 
 .depth {
@@ -1171,4 +1171,4 @@ body.lights-off .rec-note { filter: brightness(0.28); }
   mix-blend-mode: overlay;
   transition: opacity 0.8s ease 0.4s;
 }
-.scene.zooming .grain { opacity: 0.22; }
+.scene.zooming .grain { opacity: 0; }
