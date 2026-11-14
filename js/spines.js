@@ -3,7 +3,7 @@
 // Spines are painted at 3x their shelf size, so the browser shrinks them smoothly in the overview
 // (titles soften like print seen across a room) and they stay crisp when a shelf is zoomed.
 
-const R = 3; // render scale (canvas px per book px)
+const R = 2.4; // render scale (canvas px per book px)
 
 const FONTS = [
   { title: "600 {s}px Cinzel", caps: true, author: "500 {s}px 'EB Garamond'" },
@@ -66,6 +66,22 @@ function cleanTitle(t) {
   return s || String(t || "");
 }
 
+// Each book is painted once into a cached bitmap; every spine on screen (standing, lying,
+// pulled out, rebuilt after a zoom) just copies it. New paints are spread over frames.
+const cache = new Map(); // book id -> { canvas, withCover }
+const queue = [];
+let pumping = false;
+function pump() {
+  pumping = true;
+  const t0 = performance.now();
+  while (queue.length && performance.now() - t0 < 8) {
+    const e = queue.shift();
+    if (e.canvas.isConnected || !e.started) draw(e);
+  }
+  if (queue.length) requestAnimationFrame(pump);
+  else pumping = false;
+}
+
 export function makeSpineCanvas(b) {
   const c = document.createElement("canvas");
   c.className = "spine-canvas";
@@ -74,19 +90,48 @@ export function makeSpineCanvas(b) {
   if (!live.has(b.id)) live.set(b.id, new Set());
   const entry = { canvas: c, b };
   live.get(b.id).add(entry);
-  paint(entry);
+  const hit = cache.get(b.id);
+  if (hit && hit.canvas.width === c.width && hit.canvas.height === c.height) {
+    c.getContext("2d").drawImage(hit.canvas, 0, 0);
+  } else {
+    const g = c.getContext("2d");
+    g.fillStyle = b.spine || "#584f46";
+    g.fillRect(0, 0, c.width, c.height);
+    queue.push(entry);
+    if (!pumping) requestAnimationFrame(pump);
+  }
   return c;
+}
+
+function draw(entry) {
+  entry.started = true;
+  const { canvas: c, b } = entry;
+  let hit = cache.get(b.id);
+  const coverReady = !!cover(b.cover, b.id);
+  if (!hit || hit.canvas.width !== c.width || hit.canvas.height !== c.height || (coverReady && !hit.withCover)) {
+    const off = document.createElement("canvas");
+    off.width = c.width; off.height = c.height;
+    paint({ canvas: off, b });
+    hit = { canvas: off, withCover: coverReady };
+    cache.set(b.id, hit);
+  }
+  c.getContext("2d").drawImage(hit.canvas, 0, 0);
 }
 
 function redrawBook(id) {
   const set = live.get(id);
   if (!set) return;
+  cache.delete(id);
   for (const e of [...set]) {
-    if (!e.canvas.isConnected && e.painted) { set.delete(e); continue; }
-    paint(e);
+    if (!e.canvas.isConnected && e.started) { set.delete(e); continue; }
+    draw(e);
   }
 }
-function redrawAll() { for (const id of live.keys()) redrawBook(id); }
+function redrawAll() {
+  cache.clear();
+  for (const set of live.values()) for (const e of set) { if (e.canvas.isConnected) queue.push(e); }
+  if (!pumping && queue.length) requestAnimationFrame(pump);
+}
 
 function paint(entry) {
   const { canvas: c, b } = entry;
@@ -272,5 +317,7 @@ function paint(entry) {
   ao.addColorStop(1, "rgba(0,0,0,0.35)");
   g.fillStyle = ao;
   g.fillRect(0, H * 0.9, W, H * 0.1);
+  g.fillStyle = "rgba(0,0,0,0.09)";
+  g.fillRect(0, 0, W, H);
   g.restore();
 }

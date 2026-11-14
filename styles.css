@@ -340,8 +340,7 @@ div.obj { cursor: default; }
   position: absolute;
   opacity: 0;
   pointer-events: none;
-  -webkit-backdrop-filter: brightness(0.9);
-  backdrop-filter: brightness(0.9);
+  background: rgba(0, 0, 0, 0.1);
   transition: opacity 0.8s ease 0.3s;
 }
 .scene.zooming .depth { opacity: 1; }
@@ -563,7 +562,7 @@ div.obj { cursor: default; }
 .unlit .light {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55));
 }
-.bay .spine { filter: brightness(0.9) saturate(0.92); box-shadow: 2px 0 5px rgba(0, 0, 0, 0.55), -1px 0 2px rgba(0, 0, 0, 0.35); }
+.bay .spine { box-shadow: 2px 0 3px rgba(0, 0, 0, 0.5); }
 .lit .pages { filter: brightness(0.72) sepia(0.35); }
 .unlit .pages { filter: brightness(0.4) sepia(0.2); }
 
@@ -1190,3 +1189,7 @@ body.lights-off .rec-note { filter: brightness(0.28); }
   transition: opacity 0.7s ease 0.35s;
 }
 .bay.zoomed .zoom-back { opacity: 1; }
+
+/* during camera moves, drop the per-frame-expensive shadows; they return when it settles */
+body.cam-moving .obj img, body.cam-moving .plate { filter: none !important; }
+body.cam-moving .bay .spine { box-shadow: none; }

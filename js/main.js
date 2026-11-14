@@ -100,14 +100,21 @@ function bookEl(b, bay, index) {
   btn.setAttribute("aria-label", `${b.title} by ${b.author}`);
   applyBookVars(btn, b, BOOK_K);
   const body = el("span", "b3d");
-  const front = el("span", "front");
-  if (b.cover) front.style.backgroundImage = `url("${b.cover}")`;
-  else {
-    front.classList.add("plain");
-    front.append(el("span", "front-title", b.title));
-  }
-  front.append(el("span", "front-shade"));
-  body.append(spineFaces(b), front, el("span", "pages" + (b.binding === "hardcover" ? " hard" : "")));
+  body.append(spineFaces(b), el("span", "pages" + (b.binding === "hardcover" ? " hard" : "")));
+  // the front cover only exists once someone reaches for the book: 100+ hidden covers cost a lot
+  const addFront = () => {
+    if (body.querySelector(".front")) return;
+    const front = el("span", "front");
+    if (b.cover) front.style.backgroundImage = `url("${b.cover}")`;
+    else {
+      front.classList.add("plain");
+      front.append(el("span", "front-title", b.title));
+    }
+    front.append(el("span", "front-shade"));
+    body.insertBefore(front, body.children[1]);
+  };
+  btn.addEventListener("pointerenter", addFront);
+  btn.addEventListener("focus", addFront);
   if (b.status === "reading") body.append(el("span", "ribbon"));
   if (b.kind === "rec" && b.recommender) body.append(el("span", "tag", b.recommender));
   btn.append(body);
@@ -369,13 +376,21 @@ function applyCamera(t, instant = false, ms = 0) {
     void stage.offsetWidth;
   } else {
     // re-express the current view at the target zoom without moving, then glide
+    // while moving, the browser keeps the room as one ready-made picture instead of redrawing every
+    // book at each step; it redraws once, crisp, when the camera stops
+    stage.style.willChange = "transform";
+    document.body.classList.add("cam-moving");
     stage.style.transition = "none";
     setCamera(stage, from, t.s);
     void stage.offsetWidth;
     const dur = ms || 950;
     stage.style.transition = `transform ${dur}ms ${ms ? "cubic-bezier(0.55, 0, 0.2, 1)" : "cubic-bezier(0.65, 0, 0.25, 1)"}`;
     setCamera(stage, t, t.s);
-    camTimer = setTimeout(() => { stage.style.transition = "none"; }, dur + 30);
+    camTimer = setTimeout(() => {
+      stage.style.transition = "none";
+      stage.style.willChange = "";
+      document.body.classList.remove("cam-moving");
+    }, dur + 30);
   }
   pickPhotoRes(t.s);
   if (!state.zoom) placeExtensions(t);
@@ -789,7 +804,7 @@ function buildObjects() {
     const i = Math.floor(Math.random() * shelved.length);
     openDetail(node, shelved[i], shelved, i, true);
   }));
-  state.planeEl = makeObject(OBJECTS.plane, "Is my shelf missing a gem?", (node) => openRecForm(node));
+  state.planeEl = makeObject(OBJECTS.plane, "Book a flight to my shelf.", (node) => openRecForm(node));
   layer.append(state.planeEl);
   addPlant();
   const glow = $("lampGlow");

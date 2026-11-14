@@ -154,6 +154,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
   const tmpQ = new THREE.Quaternion(), m4 = new THREE.Matrix4();
   const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2) * 0.35 + (1 - Math.pow(1 - t, 2)) * 0.65; // eases in, glides, settles
 
+  let lastKey = "";
   function frame(now) {
     requestAnimationFrame(frame);
     const hidden = isHidden() || (!arrived && !flight);
@@ -161,6 +162,11 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     if (hidden && !flight) return;
     const { size, base } = restFrame();
     if (!size) return;
+    // at rest nothing moves: skip drawing unless the plane, the hover lift, the view or the lights changed
+    const frameKey = `${size.toFixed(2)}|${base.x.toFixed(1)}|${base.y.toFixed(1)}|${isDark()}|${vw}x${vh}`;
+    const settling = Math.abs(liftTarget - lift) > 0.002;
+    if (!flight && !settling && frameKey === lastKey) return;
+    lastKey = frameKey;
 
     // lights follow the plane, scaled to its size
     const dark = isDark();
