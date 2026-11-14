@@ -55,6 +55,17 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
   for (let i = 0; i < pos.length / 3; i++) { uv[i * 2] = pos[i * 3] * 1.4; uv[i * 2 + 1] = pos[i * 3 + 2] * 1.4 + pos[i * 3 + 1]; }
   geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
   geo.computeVertexNormals();
+  // the same triangles laid flat: wings opened out, keel flattened, an arrowhead of paper
+  const folded = pos.slice();
+  const flat = folded.slice();
+  for (let i = 0; i < flat.length; i += 3) { flat[i + 1] = 0; }
+  function setMorph(m) {
+    const a = geo.attributes.position.array;
+    for (let i = 0; i < a.length; i++) a[i] = folded[i] + (flat[i] - folded[i]) * m;
+    geo.attributes.position.needsUpdate = true;
+    geo.computeVertexNormals();
+  }
+  mat.transparent = true;
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
   // a crumpled nose: pinch the tip a little
@@ -151,17 +162,88 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
   function flyOnce() { flyIn(); }
   function arriveNow() { arrived = true; }
 
+  // facing the viewer, laid flat, nose up: how the plane looks the moment it becomes the sheet
+  const faceQ = new THREE.Quaternion().setFromRotationMatrix(
+    new THREE.Matrix4().makeBasis(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0)));
+  const flyQ0 = floorQ.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI + 0.4, 0)));
+  let act = null;
+  const sheetPose = (rect) => {
+    const S = rect.height;
+    const c = toWorld(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    c.y -= S / 2; // the plane's origin is its tail, at the bottom of the arrowhead
+    return { pos: c, S };
+  };
+  // pick the plane up off the floor and open it into the sheet in the middle of the screen
+  function openTo(rect, done) {
+    const { size, base } = restFrame();
+    const sp = sheetPose(rect);
+    const up = base.clone().add(new THREE.Vector3(-size * 0.2, size * 1.4, size * 0.3));
+    const mid = up.clone().lerp(sp.pos, 0.5).add(new THREE.Vector3(0, size * 0.8, 0));
+    act = {
+      start: performance.now(), dur: 1250, done,
+      curve: new THREE.CatmullRomCurve3([base.clone(), up, mid, sp.pos], false, "centripetal", 0.5),
+      q0: restQ, q1: faceQ, qMid: flyQ0, s0: size, s1: sp.S, m0: 0, m1: 1, o0: 1, o1: 1, kind: "open",
+    };
+  }
+  // fold the sheet back into a plane and send it into the shelf (or back to the floor)
+  function foldTo(rect, target, done, intoShelf) {
+    const { size, base } = restFrame();
+    const sp = sheetPose(rect);
+    const end = intoShelf ? toWorld(target.x, target.y) : base.clone();
+    const mid = sp.pos.clone().lerp(end, 0.45).add(new THREE.Vector3(0, size * 1.2, size * 0.2));
+    act = {
+      start: performance.now(), dur: intoShelf ? 1500 : 1200, done,
+      curve: new THREE.CatmullRomCurve3([sp.pos, mid, end], false, "centripetal", 0.5),
+      q0: faceQ, q1: intoShelf ? flyQ0 : restQ, qMid: flyQ0, s0: sp.S, s1: intoShelf ? size * 0.55 : size, m0: 1, m1: 0,
+      o0: 1, o1: intoShelf ? 0 : 1, kind: intoShelf ? "send" : "return",
+    };
+  }
+  let fadeIn = 0;
+
   const tmpQ = new THREE.Quaternion(), m4 = new THREE.Matrix4();
   const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2) * 0.35 + (1 - Math.pow(1 - t, 2)) * 0.65; // eases in, glides, settles
 
   let lastKey = "";
   function frame(now) {
     requestAnimationFrame(frame);
-    const hidden = isHidden() || (!arrived && !flight);
+    const hidden = !act && (isHidden() || (!arrived && !flight));
     canvas.style.opacity = hidden ? "0" : "1";
+    canvas.style.zIndex = act ? "100" : "5"; // above the form's dimmed backdrop while it opens or folds
     if (hidden && !flight) return;
     const { size, base } = restFrame();
     if (!size) return;
+    if (act) {
+      const t = Math.min(1, (now - act.start) / act.dur);
+      const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      plane.position.copy(act.curve.getPointAt(e));
+      // turn through a level flight pose on the way, so it never flips or tumbles
+      const qa = tmpQ.copy(act.q0).slerp(act.qMid, THREE.MathUtils.smoothstep(e, 0, 0.45));
+      plane.quaternion.copy(qa).slerp(act.q1, THREE.MathUtils.smoothstep(e, 0.45, 1));
+      plane.scale.setScalar(act.s0 + (act.s1 - act.s0) * THREE.MathUtils.smoothstep(e, 0.1, 1));
+      const mk = act.kind === "open" ? THREE.MathUtils.smoothstep(e, 0.55, 1) : 1 - THREE.MathUtils.smoothstep(e, 0, 0.45);
+      setMorph(act.m0 === 0 ? mk : mk);
+      mat.opacity = act.o0 + (act.o1 - act.o0) * THREE.MathUtils.smoothstep(e, 0.7, 1);
+      key.position.copy(plane.position).add(new THREE.Vector3(-size * 3, size * 6, size * 6));
+      key.target.position.copy(plane.position);
+      twine.visible = false;
+      plane.updateMatrixWorld(true);
+      renderer.render(scene, camera);
+      if (t >= 1) {
+        const d = act.done, kind = act.kind;
+        act = null;
+        lastKey = "";
+        if (kind === "send") { setMorph(0); mat.opacity = 0; fadeIn = performance.now(); }
+        d && d();
+      }
+      return;
+    }
+    if (fadeIn) {
+      // a fresh plane settles back onto the floor
+      const k = Math.min(1, (now - fadeIn) / 700);
+      mat.opacity = k;
+      lastKey = "";
+      if (k >= 1) fadeIn = 0;
+    }
     // at rest nothing moves: skip drawing unless the plane, the hover lift, the view or the lights changed
     const frameKey = `${size.toFixed(2)}|${base.x.toFixed(1)}|${base.y.toFixed(1)}|${isDark()}|${vw}x${vh}`;
     const settling = Math.abs(liftTarget - lift) > 0.002;
@@ -217,5 +299,5 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
   }
   requestAnimationFrame(frame);
   window.__plane3d = { plane, camera, THREE, get flying() { return !!flight; } };
-  onReady && onReady({ flyOnce, arriveNow });
+  onReady && onReady({ flyOnce, arriveNow, openTo, foldTo, get busy() { return !!act; } });
 }

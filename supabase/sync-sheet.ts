@@ -82,6 +82,23 @@ async function lookup(isbn: string | null, title: string, author: string) {
   const r = await getJson(`https://openlibrary.org/search.json?${q}&limit=5&fields=${FIELDS}`);
   return r?.docs?.find((d: any) => d.cover_i) ?? r?.docs?.[0] ?? null;
 }
+// ---------- Google Books (cover fallback when Open Library has none) ----------
+async function googleCover(isbn: string | null, title: string, author: string) {
+  const qs = [
+    isbn ? `isbn:${isbn}` : null,
+    `intitle:${title} inauthor:${author}`,
+  ].filter(Boolean) as string[];
+  for (const q of qs) {
+    const r = await getJson(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5&printType=books`);
+    const hit = r?.items?.find((it: any) => it?.volumeInfo?.imageLinks?.thumbnail);
+    const url: string | undefined = hit?.volumeInfo?.imageLinks?.thumbnail;
+    if (url) return url.replace(/^http:/, "https:").replace(/&edge=curl/, "").replace(/&zoom=\d/, "&zoom=1") + "&fife=w800";
+  }
+  return null;
+}
+const isAutoCover = (c: string) =>
+  c.startsWith("https://covers.openlibrary.org") || c.startsWith("https://books.google.");
+
 async function blurbFor(olKey: string | null) {
   if (!olKey) return null;
   const w = await getJson(`https://openlibrary.org${olKey}.json`);
@@ -226,7 +243,9 @@ function needsEnrich(b: any, e: any) {
   if ((e.isbn ?? null) !== cleanIsbn(b.isbn)) return true;
   const ov = clean(b.cover_override);
   if (ov && e.cover !== ov) return true;
-  if (!ov && e.cover && !e.cover.startsWith("https://covers.openlibrary.org")) return true;
+  if (!ov && e.cover && !isAutoCover(e.cover)) return true;
+  // null = looked before the Google Books fallback existed; "" = looked everywhere, nothing found
+  if (!ov && e.cover === null) return true;
   return false;
 }
 
@@ -309,15 +328,19 @@ async function handle(req: Request) {
     const doc = await lookup(base.isbn, base.title!, base.author!);
     const ov = clean(b.cover_override);
     const olCover = doc?.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null;
-    const cover = ov ?? olCover;
-    const pal = ov ? await paletteOf(ov) : olCover ? await paletteOf(olCover.replace("-L.jpg", "-M.jpg")) : null;
+    const gbCover = ov || olCover ? null : await googleCover(base.isbn, base.title!, base.author!);
+    const cover = ov ?? olCover ?? gbCover;
+    const pal = ov ? await paletteOf(ov)
+      : olCover ? await paletteOf(olCover.replace("-L.jpg", "-M.jpg"))
+      : gbCover ? await paletteOf(gbCover.replace("&fife=w800", ""))
+      : null;
     const r = rng(b.key + "|palette");
     const fallback = hslHex(Math.floor(r() * 360), 25 + r() * 20, 28 + r() * 14);
     const pages = doc?.number_of_pages_median ?? null;
 
     fresh.push({
       ...base,
-      cover,
+      cover: cover ?? "",
       ol_key: doc?.key ?? null,
       year: doc?.first_publish_year ?? null,
       blurb: await blurbFor(doc?.key ?? null),

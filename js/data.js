@@ -34,6 +34,7 @@ function normalizeBook(b) {
     favorite: !!b.favorite,
     recommendedBy: b.recommended_by || "",
     cover: b.cover || "",
+    isbn: b.isbn || "",
     year: b.year || null,
     blurb: b.blurb || "",
     pages: b.pages || null,
@@ -52,7 +53,7 @@ function normalizeBook(b) {
   };
 }
 
-function normalizeRec(r) {
+export function normalizeRec(r) {
   const h = hash(r.id + r.title);
   return {
     kind: "rec",

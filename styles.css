@@ -72,6 +72,7 @@ body.ready .bays { opacity: 1; }
 /* ---------- the title, lettered on the wall ---------- */
 .wall-title {
   position: absolute;
+  will-change: opacity;
   text-align: center;
   pointer-events: none;
   opacity: 0;
@@ -117,7 +118,7 @@ body.ready .wall-title.faded.peek { opacity: 0.6; transition-duration: 0.5s; }
   pointer-events: auto;
   cursor: pointer;
   transform-origin: 50% 100%;
-  transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.05);
+  transition: none;
 }
 div.obj { cursor: default; }
 .obj img {
@@ -132,7 +133,6 @@ div.obj { cursor: default; }
   filter: var(--grade) drop-shadow(var(--cast, 0 1px 1px) rgba(0, 0, 0, 0.55));
   transform: rotate(var(--rot, 0deg));
   transform-origin: 50% 100%;
-  transition: filter 0.35s ease;
 }
 /* light falling across the object, clipped to its silhouette */
 .obj .tint {
@@ -154,13 +154,13 @@ div.obj { cursor: default; }
   background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.35) 45%, transparent 72%);
   pointer-events: none;
 }
-.obj:hover { transform: translateY(-4px); }
+.obj:hover { transform: none; }
 .obj:hover img { filter: var(--grade) brightness(1.15) drop-shadow(var(--cast, 0 1px 1px) rgba(0, 0, 0, 0.55)); }
 .obj .tint { transform: rotate(var(--rot, 0deg)); transform-origin: 50% 100%; }
 
 /* set back on a shelf above the camera: base hidden behind the board's edge, top leaning away,
    a little darker where it meets the shelf */
-.obj.on-shelf:hover { transform: translateY(-3px); }
+.obj.on-shelf:hover { transform: none; }
 .obj.on-shelf img, .obj.on-shelf .tint { clip-path: inset(0 0 var(--hide) 0); }
 .obj.on-shelf .contact { display: none; }
 .obj.on-shelf .tint {
@@ -215,16 +215,15 @@ div.obj { cursor: default; }
 
 .obj-pen { transform-origin: 100% 100%; }
 
-.obj-plane:hover { transform: translateY(-10px) rotate(3deg); }
-.obj-plant:hover { transform: rotate(-2deg); }
+.obj-plane:hover { transform: none; }
+.obj-plant:hover { transform: none; }
 .bay .obj-plant { z-index: 2; }
 .lamp-glow {
   position: absolute;
   width: 520px;
   height: 380px;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 50%, rgba(255, 196, 110, 0.36), rgba(255, 170, 80, 0.13) 40%, transparent 70%);
-  mix-blend-mode: screen;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 200, 120, 0.2), rgba(255, 170, 80, 0.07) 40%, transparent 70%);
 }
 .scene.zooming .objects .obj { pointer-events: none; }
 
@@ -273,7 +272,11 @@ div.obj { cursor: default; }
 .scene.zooming ~ .help { opacity: 0; pointer-events: none; }
 
 /* ---------- bays ---------- */
-.bay { position: absolute; cursor: zoom-in; }
+.bay { position: absolute; pointer-events: none; }
+.bay-hit { position: absolute; left: 0; right: 0; cursor: zoom-in; pointer-events: auto; }
+.bay.zoomed { pointer-events: auto; }
+.bay.zoomed .bay-hit { display: none; }
+.bay .obj, .bay .rec-note { pointer-events: auto; }
 .bay.zoomed { cursor: default; z-index: 3; }
 .bay-scroll {
   position: absolute;
@@ -784,6 +787,8 @@ div.obj { cursor: default; }
 }
 .p-btn:hover:not(:disabled) { border-color: var(--brass-1); color: var(--brass-1); }
 .p-btn:disabled { opacity: 0.3; cursor: default; }
+.p-btn.shelve { text-decoration: none; display: inline-flex; align-items: center;
+}
 .p-btn.shelve { margin-left: auto; background: linear-gradient(180deg, var(--brass-1), var(--brass-2)); color: var(--brass-ink); border-color: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -929,11 +934,10 @@ div.obj { cursor: default; }
   max-height: 88vh;
   overflow-y: auto;
   padding: 30px 32px 24px;
-  transform: translate(var(--fx), var(--fy)) scale(0.06) rotate(-18deg);
-  clip-path: polygon(0% 50%, 100% 32%, 100% 68%, 0% 50%);
-  transition: transform 0.7s cubic-bezier(0.5, 0, 0.2, 1), clip-path 0.55s cubic-bezier(0.5, 0, 0.2, 1) 0.15s;
+  opacity: 0;
+  transition: clip-path 0.5s cubic-bezier(0.3, 0, 0.2, 1), opacity 0.12s linear;
 }
-.rec-form.open .rec-sheet { transform: none; clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
+.rec-form.open .rec-sheet { opacity: 1; }
 .rec-sheet::before {
   content: "";
   position: absolute;
@@ -1165,10 +1169,10 @@ body.plane-3d .obj-plane:hover { transform: none; }
   line-height: 1.04;
   color: #1b2230;
 }
-.rn { font-size: 19px; white-space: nowrap; }
-.rn-2 { margin-left: 12px; }
+.rn { font-size: 18px; white-space: nowrap; }
+.rn-2 { margin-left: 16px; }
 .rn-3 { margin-left: 4px; }
-.rn-4 { margin-left: 24px; }
+.rn-4 { margin-left: 14px; }
 .rec-note-pin {
   position: absolute;
   left: 50%;
@@ -1217,3 +1221,12 @@ body.lights-off .rec-note { filter: brightness(0.28); }
 /* during camera moves, drop the per-frame-expensive shadows; they return when it settles */
 body.cam-moving .obj img, body.cam-moving .plate { filter: none !important; }
 body.cam-moving .bay .spine { box-shadow: none; }
+
+.book > .b3d, .book > .b3d * { pointer-events: none; }
+.stack .lbook { pointer-events: none; }
+/* a generous target for the paper plane on the floor */
+.obj-plane::before { content: ""; position: absolute; inset: -22px -18px -14px -18px; }
+
+/* a book that has just been sent settles onto the Recommended shelf */
+.book.arrived .b3d { animation: arrive 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.05) both; }
+@keyframes arrive { from { opacity: 0; transform: translateY(-40px) translateZ(60px); } to { opacity: 1; transform: none; } }

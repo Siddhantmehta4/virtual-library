@@ -1,4 +1,4 @@
-import { loadLibrary } from "./data.js";
+import { loadLibrary, normalizeRec } from "./data.js";
 import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITLE } from "./layout.js";
 import { ESTATE_URL, SUPABASE_URL, SUPABASE_KEY } from "./config.js";
 import { makeSpineCanvas, SPINE_FONT_LOADS } from "./spines.js";
@@ -202,10 +202,16 @@ function buildRoom() {
     const row = el("div", "bay-row");
     scroller.append(row);
     box.append(scroller);
-    box.addEventListener("click", () => { if (!state.zoom) openZoom(bay); });
+    // the box reaches up into the shelf above (headroom for a pulled book); only the bay's own
+    // opening responds to hover and clicks, so the shelf above never shows this bay's card
+    const hit = el("div", "bay-hit");
+    hit.style.top = `${LIFT}px`;
+    hit.style.height = `${bay.base - bay.top}px`;
+    box.append(hit);
+    hit.addEventListener("click", () => { if (!state.zoom) openZoom(bay); });
     if (canHover) {
-      box.addEventListener("pointerenter", () => showBayCard(box, bay));
-      box.addEventListener("pointerleave", hideCard);
+      hit.addEventListener("pointerenter", () => showBayCard(hit, bay));
+      hit.addEventListener("pointerleave", hideCard);
     }
     // zoomed in, the back panel becomes the centre arch's wood, warmed by the lamp's halo
     const back = el("div", "zoom-back");
@@ -263,7 +269,6 @@ function fillBay(bay, all) {
       const lying = lyingBook(b, BOOK_K * 0.94);
       const r = seeded(b.id + "stack");
       lying.style.marginRight = `${Math.round((r() - 0.3) * 10)}px`;
-      lying.style.transform = `rotate(${((r() - 0.5) * 1.6).toFixed(2)}deg)`;
       stack.append(lying);
     });
     stack.addEventListener("click", (e) => { e.stopPropagation(); openZoom(bay); });
@@ -639,12 +644,15 @@ function renderPanel(b, list, index, t) {
   const nav = el("div", "p-nav");
   const prev = el("button", "p-btn", "← Previous");
   const next = el("button", "p-btn", "Next →");
-  const shelve = el("button", "p-btn shelve", "Shelve it");
+  const shelve = el("a", "p-btn shelve", "Find it on Goodreads");
+  const gq = [b.title, b.author].filter(Boolean).join(" ");
+  shelve.href = `https://www.goodreads.com/search?q=${encodeURIComponent(b.isbn || gq)}`;
+  shelve.target = "_blank";
+  shelve.rel = "noopener";
   prev.disabled = index <= 0;
   next.disabled = index >= list.length - 1;
   prev.addEventListener("click", () => swapDetail(-1));
   next.addEventListener("click", () => swapDetail(1));
-  shelve.addEventListener("click", closeDetail);
   nav.append(prev, next, shelve);
   panel.append(nav);
   panel.scrollTop = 0;
@@ -732,7 +740,7 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck", "lamp", "hourglass", "book", "plane"]);
+const CLICKABLE = new Set(["glasses", "deck", "hourglass", "book", "plane"]);
 // hover line only, no click
 const HOVER_ONLY = new Set(["pen"]);
 
@@ -840,7 +848,7 @@ function addCard() {
   card.setAttribute("aria-label", "Recommend a book");
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
-  ["Recommend", "a book —", "fly it", "to me!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
+  ["Use the paper", "plane to", "recommend", "me a book!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
   // the lifted lower edge: a deeper shadow there, the paper curving away from the wood
   card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
@@ -1129,38 +1137,92 @@ function closeNote() {
 const normTitle = (t) => String(t || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
 let recPick = null, searchTimer = 0, searchCtl = null;
 
+// The arrowhead the folded plane makes when laid flat (matches the 3D plane's flat shape),
+// and the full sheet it opens into. Same number of points, so one shape morphs into the other.
+function sheetShapes(sheet) {
+  const W = sheet.offsetWidth, H = sheet.offsetHeight;
+  const half = Math.min(50, ((0.36 * H) / W) * 100), fold = Math.min(50, ((0.12 * H) / W) * 100);
+  const L = 50 - half, R = 50 + half, fl = 50 - fold, fr = 50 + fold;
+  return {
+    arrow: `polygon(50% 0, 50% 0, ${R}% 98%, ${fr}% 95%, 50% 100%, ${fl}% 95%, ${L}% 98%, 50% 0)`,
+    rect: `polygon(50% 0, 100% 0, 100% 100%, ${fr}% 100%, 50% 100%, ${fl}% 100%, 0 100%, 0 0)`,
+  };
+}
+
 function openRecForm(planeNode) {
   if (state.zoom) closeZoom();
+  if (state.plane3d && state.plane3d.busy) return;
   hideCard();
   const form = $("recForm");
   const sheet = form.querySelector(".rec-sheet");
-  const r = planeNode.getBoundingClientRect();
-  form.style.setProperty("--fx", `${r.left + r.width / 2 - innerWidth / 2}px`);
-  form.style.setProperty("--fy", `${r.top + r.height / 2 - innerHeight / 2}px`);
   resetRecForm();
   form.classList.add("on");
   form.setAttribute("aria-hidden", "false");
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    form.classList.add("open");
-    setTimeout(() => $("recSearch").focus({ preventScroll: true }), 600);
-  }));
   sheet.scrollTop = 0;
+  const shapes = sheetShapes(sheet);
+  sheet.style.clipPath = shapes.arrow;
+  const reveal = () => {
+    form.classList.add("open");
+    requestAnimationFrame(() => { sheet.style.clipPath = shapes.rect; });
+    setTimeout(() => { sheet.style.clipPath = "none"; $("recSearch").focus({ preventScroll: true }); }, 520);
+  };
+  if (state.plane3d && !reduceMotion) {
+    state.planeActing = true;
+    state.plane3d.openTo(sheet.getBoundingClientRect(), () => { state.planeActing = false; reveal(); });
+  } else {
+    requestAnimationFrame(() => requestAnimationFrame(reveal));
+  }
 }
 
 function closeRecForm(sent) {
   const form = $("recForm");
-  form.classList.remove("open");
-  setTimeout(() => {
+  const sheet = form.querySelector(".rec-sheet");
+  if (!form.classList.contains("on")) return;
+  const shapes = sheetShapes(sheet);
+  const rect = sheet.getBoundingClientRect();
+  sheet.style.transition = "none";
+  sheet.style.clipPath = shapes.rect;
+  void sheet.offsetWidth;
+  sheet.style.transition = "";
+  requestAnimationFrame(() => { sheet.style.clipPath = shapes.arrow; });
+  const finish = () => {
     form.classList.remove("on");
     form.setAttribute("aria-hidden", "true");
-    if (sent && state.planeEl) {
-      state.planeEl.classList.add("fly");
-      setTimeout(() => {
-        state.planeEl.classList.remove("fly");
-        flashLabel(state.planeEl, "Thank you. It'll be on the shelf once I've seen it.", 3600);
-      }, 1700);
+    sheet.style.clipPath = "";
+    sheet.style.transition = "";
+  };
+  setTimeout(() => {
+    // hand over to the 3D plane: the paper vanishes exactly as the plane appears in its place
+    sheet.style.transition = "none";
+    form.classList.remove("open");
+    if (state.plane3d && !reduceMotion) {
+      const recBay = state.bays.find((b) => b.home === "Recommended");
+      const r = recBay && recBay.el.getBoundingClientRect();
+      const target = r ? { x: r.left + r.width * 0.35, y: r.top + r.height * 0.6 } : null;
+      state.planeActing = true;
+      state.plane3d.foldTo(rect, target, () => {
+        state.planeActing = false;
+        if (sent) shelveSent(sent);
+      }, !!(sent && target));
+      setTimeout(finish, 200);
+    } else {
+      finish();
+      if (sent) shelveSent(sent);
     }
-  }, 650);
+  }, 430);
+}
+
+// the book they sent slides onto the Recommended shelf straight away
+function shelveSent(rec) {
+  const bay = state.bays.find((b) => b.home === "Recommended");
+  if (!bay || typeof rec !== "object") return;
+  const book = normalizeRec({ id: `sent-${Date.now()}`, ...rec });
+  state.recs.unshift(book);
+  bay.books = state.recs;
+  fillBay(bay, false);
+  const first = bay.row.querySelector(".book");
+  if (first) first.classList.add("arrived");
+  if (state.planeEl) setTimeout(() => flashLabel(state.planeEl, "Thank you. It's on the shelf.", 3200), 600);
 }
 
 function resetRecForm() {
@@ -1273,8 +1335,11 @@ async function sendRec() {
       body: JSON.stringify({ ...recPick, recommender: name, note, website: $("recHp").value }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't send it.");
-    closeRecForm(true);
+    if (!res.ok || !data.ok) {
+      console.warn("recommend failed", res.status, data);
+      throw new Error(data.error || (res.status === 401 ? "The recommend slot is locked (401)." : res.status === 404 ? "The recommend slot isn't set up yet (404)." : `Couldn't send it (${res.status}).`));
+    }
+    closeRecForm({ ...recPick, recommender: name, note: null });
   } catch (e) {
     err.textContent = e.message && e.message !== "Failed to fetch" ? e.message : "Couldn't send it just now. Try again in a moment.";
     $("recSend").disabled = false;
@@ -1287,7 +1352,7 @@ function startPlane3D() {
   import("./plane3d.js").then(({ initPlane3D }) => {
     initPlane3D({
       anchor: state.planeEl,
-      isHidden: () => !!state.zoom || $("recForm").classList.contains("on"),
+      isHidden: () => !!state.zoom || ($("recForm").classList.contains("on") && !state.planeActing),
       isDark: () => state.lightsOff,
       note: () => {
         const n = $("objects").querySelector(".rec-note");
@@ -1295,7 +1360,9 @@ function startPlane3D() {
         const r = n.getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: Math.max(r.width, r.height) / 2 };
       },
-      onReady: ({ flyOnce, arriveNow }) => {
+      onReady: (api) => {
+        const { flyOnce, arriveNow } = api;
+        state.plane3d = api;
         document.body.classList.add("plane-3d");
         // it comes in through the window just as the welcome starts to fade
         if (reduceMotion) arriveNow();
