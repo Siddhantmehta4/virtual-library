@@ -1372,3 +1372,8 @@ body.cam-moving .bay .spine { box-shadow: none; }
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
   z-index: 2;
 }
+
+/* the lamp is gone, and its glow with it */
+.lamp-glow { display: none !important; }
+/* the sheet in the typewriter shouldn't outshine the dim arch */
+.obj-typewriter { --grade: brightness(0.86) contrast(1.08) saturate(0.95) sepia(0.06); }

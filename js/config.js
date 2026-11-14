@@ -5,3 +5,8 @@ export const SUPABASE_KEY = "sb_publishable_djFbJrmqoM7mZpDHPhYQJw_ug3V7E5P";
 
 // Where the pen leads. Leave empty until The Estate's beta / landing page is live.
 export const ESTATE_URL = "";
+
+// Where the typewriter leads (the short story's reading page). Empty until it's up.
+export const STORY_URL = "";
+// Where the speaker leads (my reading playlist on Spotify). Empty until it's added.
+export const SPOTIFY_URL = "";

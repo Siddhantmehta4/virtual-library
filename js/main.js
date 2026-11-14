@@ -1,6 +1,6 @@
 import { loadLibrary, normalizeRec } from "./data.js";
 import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITLE } from "./layout.js";
-import { ESTATE_URL, SUPABASE_URL, SUPABASE_KEY } from "./config.js";
+import { ESTATE_URL, STORY_URL, SPOTIFY_URL, SUPABASE_URL, SUPABASE_KEY } from "./config.js";
 import { makeSpineCanvas, SPINE_FONT_LOADS } from "./spines.js";
 
 const SHOW_OBJECTS = true;
@@ -799,7 +799,7 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck", "hourglass", "book", "plane"]);
+const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane"]);
 // hover line only, no click
 const HOVER_ONLY = new Set(["pen"]);
 
@@ -852,7 +852,14 @@ function buildObjects() {
   layer.innerHTML = "";
   const reading = state.books.filter((b) => b.status === "reading");
 
-  layer.append(makeObject(OBJECTS.lamp, () => (state.lightsOff ? "Lights: On" : "Lights: Off"), () => toggleLights()));
+  layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
+    if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
+    else flashLabel(node, "Still being typed. Soon.");
+  }));
+  layer.append(makeObject(OBJECTS.speaker, "I like big books and I cannot lie.. ", (node) => {
+    if (SPOTIFY_URL) window.open(SPOTIFY_URL, "_blank", "noopener");
+    else flashLabel(node, "The playlist is warming up.");
+  }));
   layer.append(makeObject(OBJECTS.glasses, "Put these on to search.", () => openReader()));
   layer.append(makeObject(OBJECTS.hourglass, "If I could save time in a bottle.. ", (node) => flipTime(node)));
   layer.append(makeObject(OBJECTS.deck, "Pick a card, any card.", (node) => {
@@ -864,9 +871,6 @@ function buildObjects() {
   state.planeEl = makeObject(OBJECTS.plane, "Click to send me a book.", (node) => openRecForm(node));
   layer.append(state.planeEl);
   addPlant();
-  const glow = $("lampGlow");
-  const L = OBJECTS.lamp;
-  Object.assign(glow.style, { left: `${L.x - L.w / 2 + L.w * 0.3 - 260}px`, top: `${L.base - L.h + L.h * 0.34 - 170}px` });
 }
 
 // The current read lies on top of a short pile of other books on the right-hand arch shelf:
