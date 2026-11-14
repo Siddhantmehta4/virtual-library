@@ -556,33 +556,46 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
   transform: translateZ(1px);
 }
-/* a visitor's recommendation: a ribbon comes up out of the pages, over the head of the book,
-   and hangs down the spine with their name tag tied to its end */
+/* a visitor's recommendation: a string rises out of the pages, bends over the head of the book
+   and hangs down the spine, with their name tag tied to its end */
 .tag-thread {
   position: absolute;
-  left: 50%;
+  left: 0;
   top: 0;
-  width: max(1px, calc(var(--k) * 1.8px));
-  height: calc(24% + var(--k) * 1px);
-  margin-left: calc(var(--k) * -0.9px);
-  background: linear-gradient(90deg, #5a4528, #c9ad7a 50%, #4e3b22);
-  transform: translateZ(3px) rotate(2deg);
-  transform-origin: 50% 0;
-  box-shadow: 1px 0 1px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: calc(24% + var(--k) * 2px);
+  transform: translateZ(3px);
+  pointer-events: none;
 }
-/* where it rises out of the pages and arcs over the top edge */
-.tag-thread::before {
-  content: "";
+/* the bend where the cord comes over the head of the book catches the light */
+.tt-bend {
   position: absolute;
-  right: 0;
-  bottom: 100%;
-  width: calc(var(--k) * 7px);
-  height: calc(var(--k) * 5px);
-  border: max(1px, calc(var(--k) * 1.8px)) solid #a88b5c;
-  border-bottom: 0;
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  box-sizing: border-box;
+  left: 54%;
+  top: calc(var(--k) * -1.2px);
+  width: calc(var(--k) * 2.6px);
+  height: calc(var(--k) * 2.2px);
+  margin-left: calc(var(--k) * -1.3px);
+  border-radius: 50% 50% 40% 40%;
+  background: radial-gradient(circle at 40% 35%, #e3cfa4, #a88d61 60%, #6b5534);
+  box-shadow: 0.5px 1px 1px rgba(0, 0, 0, 0.45);
 }
+.pg-thread {
+  position: absolute;
+  left: 54%;
+  top: 35%;
+  bottom: 0;
+  width: max(1px, calc(var(--k) * 1.4px));
+  background: repeating-linear-gradient(180deg, #b39669 0 1.2px, #7a6340 1.2px 2px);
+  box-shadow: 1px 0 1px rgba(0, 0, 0, 0.35);
+}
+.tag-thread svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tag-thread path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+/* soft shadow the string casts on the spine, a little down and to the right */
+.tt-shade { stroke: rgba(0, 0, 0, 0.4); stroke-width: 1.4px; transform: translate(3%, 1.5%); filter: blur(0.4px); }
+/* the cord: waxed cotton, warm and slightly lighter than the paper tag */
+.tt-body { stroke: #b39669; stroke-width: 0.9px; }
+/* the twist of the ply: short darker strokes along it */
+.tt-twist { stroke: #6b5534; stroke-width: 0.9px; stroke-dasharray: 0.6px 0.8px; opacity: 0.6; }
 .tag {
   position: absolute;
   top: calc(24% + var(--k) * -1px);
@@ -1187,7 +1200,7 @@ body.plane-3d .obj-plane:hover { transform: none; }
 .rec-note:hover .rec-note-gap { transform: translate(7px, 7px); }
 .rec-note-ink {
   position: absolute;
-  inset: 16% 7% 8% 7%;
+  inset: 15% 4% 7% 4%;
   font-size: 21px;
   display: flex;
   flex-direction: column;

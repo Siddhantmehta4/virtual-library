@@ -110,7 +110,18 @@ function bookEl(b, bay, index) {
   btn.addEventListener("pointerenter", addFront);
   btn.addEventListener("focus", addFront);
   if (b.status === "reading") body.append(el("span", "ribbon"));
-  if (b.kind === "rec" && b.recommender) body.append(el("span", "tag-thread"), el("span", "tag", b.recommender));
+  if (b.kind === "rec" && b.recommender) {
+    // a string comes up out of the pages, bends over the head of the book and hangs down the spine
+    // to the eyelet of the visitor's name tag
+    const thread = el("span", "tag-thread");
+    thread.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path class="tt-shade" d="M54 0 C54 30 49 62 50 100"/>
+      <path class="tt-body" d="M54 0 C54 30 49 62 50 100"/>
+      <path class="tt-twist" d="M54 0 C54 30 49 62 50 100"/></svg><span class="tt-bend"></span>`;
+    body.append(thread, el("span", "tag", b.recommender));
+    // and where it comes out from between the pages: across the top of the page block to the edge
+    body.querySelector(".pages").append(el("span", "pg-thread"));
+  }
   btn.append(body);
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -893,7 +904,7 @@ function addCard() {
   card.setAttribute("aria-label", "Recommend a book");
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
-  ["Your", "picks!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
+  ["Your", "suggestions!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
   // the lifted lower edge: a deeper shadow there, the paper curving away from the wood
   card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
@@ -901,12 +912,12 @@ function addCard() {
   $("objects").append(card);
   // the writing is as large as the note allows: the longest line just fits across it
   const fit = () => {
-    ink.style.fontSize = "21px";
+    ink.style.fontSize = "24px";
     const widest = Math.max(...[...ink.children].map((n) => n.scrollWidth));
-    if (widest > ink.clientWidth) ink.style.fontSize = `${(21 * ink.clientWidth / widest).toFixed(1)}px`;
+    if (widest > ink.clientWidth) ink.style.fontSize = `${(24 * ink.clientWidth / widest).toFixed(1)}px`;
   };
   fit();
-  document.fonts.load("700 21px 'Dancing Script'").then(fit, () => {});
+  document.fonts.load("700 24px 'Dancing Script'").then(fit, () => {});
 }
 
 // =====================================================================
