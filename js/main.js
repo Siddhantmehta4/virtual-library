@@ -893,7 +893,7 @@ function addCard() {
   card.setAttribute("aria-label", "Recommend a book");
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
-  ["Your", "recommendations!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
+  ["Your", "picks!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
   // the lifted lower edge: a deeper shadow there, the paper curving away from the wood
   card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));

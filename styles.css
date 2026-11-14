@@ -556,46 +556,62 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
   transform: translateZ(1px);
 }
+/* a visitor's recommendation: a ribbon comes up out of the pages, over the head of the book,
+   and hangs down the spine with their name tag tied to its end */
+.tag-thread {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: max(1px, calc(var(--k) * 1.8px));
+  height: calc(24% + var(--k) * 1px);
+  margin-left: calc(var(--k) * -0.9px);
+  background: linear-gradient(90deg, #5a4528, #c9ad7a 50%, #4e3b22);
+  transform: translateZ(3px) rotate(2deg);
+  transform-origin: 50% 0;
+  box-shadow: 1px 0 1px rgba(0, 0, 0, 0.4);
+}
+/* where it rises out of the pages and arcs over the top edge */
+.tag-thread::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  width: calc(var(--k) * 7px);
+  height: calc(var(--k) * 5px);
+  border: max(1px, calc(var(--k) * 1.8px)) solid #a88b5c;
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  box-sizing: border-box;
+}
 .tag {
   position: absolute;
-  top: 18%;
-  left: 60%;
-  padding: calc(var(--k) * 3px) calc(var(--k) * 5px);
+  top: calc(24% + var(--k) * -1px);
+  left: 50%;
+  padding: calc(var(--k) * 6px) calc(var(--k) * 5px) calc(var(--k) * 3px);
   background: var(--paper);
   color: var(--paper-ink);
   font-family: var(--font-display);
   font-style: italic;
   font-size: calc(var(--k) * 12px);
+  line-height: 1;
   white-space: nowrap;
-  padding-left: calc(var(--k) * 9px);
-  transform: translateZ(2px) rotate(8deg);
-  transform-origin: calc(var(--k) * 4px) 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transform: translateZ(3px) translateX(-50%) rotate(5deg);
+  transform-origin: 50% 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
-/* the tag is tied on: a thread from its eyelet runs up over the head of the book */
-.tag-thread {
-  position: absolute;
-  left: calc(60% + var(--k) * 3px);
-  top: calc(var(--k) * 0.5px);
-  width: max(1px, calc(var(--k) * 1.6px));
-  height: calc(18% + var(--k) * 4px);
-  background: linear-gradient(90deg, #5a4528, #c2a674 50%, #4e3b22);
-  transform-origin: 50% 100%;
-  transform: translateZ(3px) rotate(-14deg);
-  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.35);
-}
+/* the eyelet the ribbon is tied through */
 .tag::after {
   content: "";
   position: absolute;
-  left: calc(var(--k) * 2.5px);
-  top: calc(var(--k) * 3px);
+  left: 50%;
+  top: calc(var(--k) * 1.5px);
   width: calc(var(--k) * 3px);
   height: calc(var(--k) * 3px);
+  margin-left: calc(var(--k) * -1.5px);
   border-radius: 50%;
   background: rgba(60, 45, 30, 0.75);
   box-shadow: 0 0 0 max(0.5px, calc(var(--k) * 0.8px)) rgba(200, 175, 120, 0.9);
 }
-
 
 /* light from the LED strip above lit rows; the bottom row sits in shadow */
 .light { position: absolute; inset: 0; pointer-events: none; }
@@ -611,8 +627,8 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 .lit .pages { filter: brightness(0.86) sepia(0.25); }
 .unlit .pages { filter: brightness(0.4) sepia(0.2); }
 
-/* ---------- hover card: ink on vellum. A translucent cream sheet, like tracing paper laid over
-   the shelf: the room shows faintly through, the ink sits crisp on top ---------- */
+/* ---------- hover card: smoked glass. The room shows through, softly blurred, with a faint
+   light along the top edge; serif title over small typewriter facts ---------- */
 .hover-card {
   position: fixed;
   z-index: 300;
@@ -620,30 +636,28 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
   top: 0;
   max-width: 270px;
   padding: 13px 18px 12px;
-  border-radius: 2px;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 246, 0.3), rgba(255, 253, 246, 0) 40%),
-    rgba(246, 240, 226, 0.68);
-  -webkit-backdrop-filter: blur(8px) saturate(0.8) brightness(1.12);
-  backdrop-filter: blur(8px) saturate(0.8) brightness(1.12);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15), 0 8px 22px rgba(0, 0, 0, 0.3);
-  color: #241d16;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(58, 46, 34, 0.62), rgba(22, 17, 12, 0.72));
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+  border: 1px solid rgba(255, 238, 210, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 215, 0.16), 0 12px 30px rgba(0, 0, 0, 0.45);
+  color: #f3ead9;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease;
 }
 .hover-card.on { opacity: 1; }
 .hover-card p { margin: 0; }
-.hc-title { font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 23px; line-height: 1.12; color: #1e1812; }
-.hc-author { font-family: "Karla", sans-serif; font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #3e362c; margin-top: 7px !important; }
-.hc-facts, .hc-meta { font-family: "Space Mono", monospace; font-size: 12.5px; color: #4f473c; margin-top: 7px !important; }
-.hc-meta { color: #6a6155; margin-top: 4px !important; }
+.hc-title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 23px; line-height: 1.12; color: #fbf4e6; }
+.hc-author { font-family: "Karla", sans-serif; font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(243, 234, 217, 0.82); margin-top: 7px !important; }
+.hc-facts, .hc-meta { font-family: "Space Mono", monospace; font-size: 12.5px; color: rgba(243, 234, 217, 0.7); margin-top: 7px !important; }
+.hc-meta { color: rgba(243, 234, 217, 0.58); margin-top: 4px !important; }
 .bay-card .hc-title { font-size: 20px; }
 .bay-card .hc-facts { margin-top: 3px !important; }
 .bay-card { padding: 9px 15px 9px; }
 .label { padding: 9px 15px 10px; max-width: 300px; }
-.hc-line { font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 600; font-size: 19px; line-height: 1.2; }
+.hc-line { font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 19px; line-height: 1.2; }
 
 /* ---------- zoom header ---------- */
 .zoom-head {
