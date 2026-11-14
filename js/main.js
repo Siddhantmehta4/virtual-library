@@ -799,7 +799,7 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane"]);
+const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane", "frame1", "frame2"]);
 // hover line only, no click
 const HOVER_ONLY = new Set(["pen"]);
 
@@ -840,7 +840,7 @@ function makeObject(spec, label, onClick) {
   if (!live) return node;
   node.addEventListener("pointerenter", () => {
     if (state.zoom && !node.closest(".bay.zoomed")) return;
-    labelFor(node, text());
+    if (text()) labelFor(node, text());
   });
   node.addEventListener("pointerleave", () => { hideCard(); });
   if (onClick) node.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); onClick(node, e); });
@@ -852,7 +852,8 @@ function buildObjects() {
   layer.innerHTML = "";
   const reading = state.books.filter((b) => b.status === "reading");
 
-  layer.append(makeObject(OBJECTS.guitar, ""), makeObject(OBJECTS.sleeves, ""), makeObject(OBJECTS.frame, ""));
+  layer.append(makeObject(OBJECTS.guitar, ""), makeObject(OBJECTS.sleeves, ""));
+  for (const f of [OBJECTS.frame1, OBJECTS.frame2]) layer.append(makeObject(f, "", (node) => openPhoto(node, f.photo)));
   layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
     else flashLabel(node, "Still being typed. Soon.");
@@ -1488,9 +1489,49 @@ function startPlane3D() {
   }).catch((e) => console.warn("3D plane unavailable, using the photo", e));
 }
 
+// ---------- the framed photographs: lifted off the shelf into the middle of the screen ----------
+function photoRect(img) {
+  const ar = img.naturalWidth / img.naturalHeight;
+  const maxW = innerWidth * 0.86, maxH = innerHeight * 0.8;
+  const w = Math.min(maxW, maxH * ar), h = w / ar;
+  return { left: (innerWidth - w) / 2, top: (innerHeight - h) / 2, width: w, height: h };
+}
+function openPhoto(node, src) {
+  if (state.photo) return;
+  const view = $("photoView"), img = $("photoImg");
+  // the photo sits inside the frame's opening: start the flight from there
+  const r = node.getBoundingClientRect();
+  const from = { left: r.left + r.width * 0.19, top: r.top + r.height * 0.19, width: r.width * 0.62, height: r.height * 0.62 };
+  state.photo = { node, from };
+  const go = () => {
+    const to = photoRect(img);
+    img.style.transition = "none";
+    Object.assign(img.style, px(from), { opacity: "0.4" });
+    view.classList.add("on");
+    view.setAttribute("aria-hidden", "false");
+    node.classList.add("lent");
+    img.getBoundingClientRect();
+    img.style.transition = "";
+    Object.assign(img.style, px(to), { opacity: "1" });
+  };
+  if (img.getAttribute("src") === src && img.complete) go();
+  else { img.onload = () => { img.onload = null; go(); }; img.src = src; }
+}
+function closePhoto() {
+  const p = state.photo;
+  if (!p) return;
+  const view = $("photoView"), img = $("photoImg");
+  view.classList.remove("on");
+  view.setAttribute("aria-hidden", "true");
+  Object.assign(img.style, px(p.from), { opacity: "0.4" });
+  setTimeout(() => { p.node.classList.remove("lent"); img.style.opacity = "0"; state.photo = null; }, 620);
+}
+const px = (r) => ({ left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+
 // ---------- keys, resize, boot ----------
 addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (state.photo) return closePhoto();
     if (state.detail) return closeDetail();
     if ($("note").classList.contains("on")) return closeNote();
     if ($("recForm").classList.contains("on")) return closeRecForm(false);
@@ -1531,7 +1572,9 @@ addEventListener("click", () => {
 });
 
 let resizeTimer = 0;
+$("photoView").addEventListener("click", closePhoto);
 addEventListener("resize", () => {
+  if (state.photo) Object.assign($("photoImg").style, px(photoRect($("photoImg"))));
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if (state.lightsOff) lightsOn();

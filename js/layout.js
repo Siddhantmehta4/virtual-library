@@ -88,9 +88,10 @@ export const OBJECTS = {
   // right arch: the pen dropped beside the reading pile at a casual angle
   // the current read on top of a short pile of books (built from the library itself)
   stack: { x: 2018, base: 495, sink: 9 },
-  // centre arch: the cream typewriter, and a small framed photograph leaning on the back panel
-  frame: { id: "frame", img: "photo-frame", x: 1606, base: 495, sink: 3, w: 84, h: 119, zone: "arch-right" },
-  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1378, base: 495, sink: 2, w: 184, h: 98, zone: "arch-right" },
+  // centre arch: two small framed photographs leaning on the back panel, then the cream typewriter
+  frame1: { id: "frame1", img: "frame-photo-1", photo: "assets/photos/photo-1.jpg", x: 1236, base: 495, sink: 3, w: 96, h: 96, zone: "arch-right" },
+  frame2: { id: "frame2", img: "frame-photo-2", photo: "assets/photos/photo-2.jpg", x: 1343, base: 495, sink: 3, w: 106, h: 94, zone: "arch-right" },
+  typewriter: { id: "typewriter", img: "arch-typewriter", x: 1512, base: 495, sink: 2, w: 184, h: 98, zone: "arch-right" },
   // right arch: the record player, and the sleeves leaning on the arch's right wall
   speaker: { id: "speaker", img: "arch-player", x: 2000, base: 495, sink: 3, w: 165, h: 152, zone: "arch-right" },
   sleeves: { id: "sleeves", img: "arch-sleeves", x: 2237, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },

@@ -1391,8 +1391,43 @@ body.ready .wall-title.top, body.ready .wall-title.top.faded { opacity: 0.85; }
 /* the record player and sleeves were lit warmer than this arch: settle them into its light */
 .obj-speaker { --grade: brightness(0.86) contrast(1.06) saturate(0.82); }
 /* the frame leans back against the panel: the top tips away, so it's a touch shorter than it is tall */
-.obj-frame img { transform: perspective(300px) rotateX(9deg); transform-origin: 50% 100%; }
-.obj-frame { --grade: brightness(0.9) contrast(1.05) saturate(0.9); }
+/* the frames lean back against the panel */
+.obj-frame1 img, .obj-frame2 img { transform: perspective(300px) rotateX(9deg); transform-origin: 50% 100%; }
+.obj-frame1, .obj-frame2 { --grade: brightness(0.9) contrast(1.05) saturate(0.92); }
+.obj-frame2 img { transform: perspective(300px) rotateX(9deg) rotate(1.5deg); }
+.obj.lent img { opacity: 0.35; transition: opacity 0.3s ease; }
+
+/* ---------- a framed photograph, lifted into the middle of the screen ---------- */
+.photo-view {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  pointer-events: none;
+  background: rgba(10, 8, 5, 0);
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+  transition: background 0.6s ease, backdrop-filter 0.6s ease, -webkit-backdrop-filter 0.6s ease;
+  cursor: zoom-out;
+}
+.photo-view.on {
+  pointer-events: auto;
+  background: rgba(10, 8, 5, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.photo-img {
+  position: absolute;
+  opacity: 0;
+  object-fit: cover;
+  border-radius: 2px;
+  /* a print: a thin cream border and a soft shadow under it */
+  border: clamp(6px, 1vw, 14px) solid #efe7d6;
+  box-sizing: border-box;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 30px 80px rgba(0, 0, 0, 0.6);
+  transition: left 0.62s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.62s cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 0.62s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.62s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
+}
+@media (prefers-reduced-motion: reduce) { .photo-img, .photo-view { transition: none; } }
 /* the guitar: the left wall is dimmer than the floor in front of the case */
 .obj-guitar { --grade: brightness(0.9) contrast(1.04) saturate(0.9); }
 .obj-guitar .contact { display: none; } /* its floor shadow is part of the image */
