@@ -80,17 +80,18 @@ export const TITLE = {
 // behind the board's front edge (shelf line y≈495). sink = how far below that line the base really is.
 export const OBJECTS = {
   // left arch: holder a little left of centre and forward, hourglass set further back and turned slightly
-  glasses: { id: "glasses", x: 712, base: 495, sink: 9, w: 80, h: 172, zone: "arch-left" },
-  hourglass: { id: "hourglass", x: 868, base: 495, sink: 17, w: 66, h: 125, rot: 2, zone: "arch-left" },
+  glasses: { id: "glasses", x: 712, base: 495, sink: 9, w: 69, h: 148, zone: "arch-left" },
+  hourglass: { id: "hourglass", x: 866, base: 495, sink: 17, w: 77, h: 146, rot: 2, zone: "arch-left" },
   // centre arch: lamp a touch off-centre, as if pushed aside
   lamp: { id: "lamp", x: 1392, base: 495, sink: 10, w: 172, h: 204, zone: "lamp" },
   // right arch: current read, pen dropped beside it at a casual angle
   book: { id: "book", x: 2010, base: 495, sink: 12, w: 220, h: 65, foot: 0.744, rot: -1.5, zone: "arch-right" },
   pen: { id: "pen", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
-  deck: { id: "deck", x: 588, base: 1492, w: 128, h: 90, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
+  deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1482, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
   // the note propped in the Recommended bay, tied by a string to the plane
   // pinned to the front of the plinth at the bottom-right, half hanging over its lower edge
-  card: { x: 1925, top: 1392, w: 150, h: 112, rot: -3 },
+  // pinned to the case's right-hand upright, halfway up the Recommended bay, half over the opening
+  card: { x: 2300, top: 1214, w: 172, h: 128, rot: 4 },
 };

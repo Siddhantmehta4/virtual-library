@@ -725,11 +725,13 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck", "lamp", "hourglass", "book", "plant", "plane"]);
+const CLICKABLE = new Set(["glasses", "deck", "lamp", "hourglass", "book", "plane"]);
+// hover line only, no click
+const HOVER_ONLY = new Set(["pen"]);
 
 function makeObject(spec, label, onClick) {
-  const live = CLICKABLE.has(spec.id);
-  if (!live) onClick = null;
+  const live = CLICKABLE.has(spec.id) || HOVER_ONLY.has(spec.id);
+  if (!CLICKABLE.has(spec.id)) onClick = null;
   const node = el(onClick ? "button" : "div", `obj obj-${spec.id} zone-${spec.zone}${live ? "" : " still"}`);
   if (onClick) node.type = "button";
   const text = () => (typeof label === "function" ? label() : label);
@@ -832,7 +834,7 @@ function addCard() {
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   card.style.setProperty("--rot", `${C.rot}deg`);
   const ink = el("span", "rec-note-ink");
-  ink.append(el("span", "rn-1", "Recommend a book"), el("span", "rn-2", "fly it to me"));
+  ink.append(el("span", "rn-1", "Recommend a book —"), el("span", "rn-2", "fly it to me!"));
   const knot = el("span", "rec-note-knot");
   card.append(el("span", "rec-note-shadow"), el("span", "rec-note-paper"), ink, el("span", "rec-note-pin"), knot);
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });

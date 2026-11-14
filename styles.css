@@ -1134,8 +1134,8 @@ body.plane-3d .obj-plane:hover { transform: none; }
   mix-blend-mode: multiply;
   transform: rotate(-2deg);
 }
-.rn-1 { font-size: 17px; white-space: nowrap; max-width: 100%; overflow: hidden; }
-.rn-2 { font-size: 16px; white-space: nowrap; margin-left: 18px; }
+.rn-1 { font-size: 21px; white-space: nowrap; }
+.rn-2 { font-size: 20px; white-space: nowrap; margin-left: 20px; }
 /* brass thumbtack */
 .rec-note-pin {
   position: absolute;
@@ -1152,4 +1152,4 @@ body.plane-3d .obj-plane:hover { transform: none; }
 body.lights-off .rec-note { filter: brightness(0.28); }
 .scene.zooming .rec-note { pointer-events: none; }
 /* the deck: brighter so it reads against the rug and floor */
-.obj-deck { --grade: brightness(1.42) contrast(1.12) saturate(1.05) sepia(0.04); }
+.obj-deck { --grade: brightness(1.62) contrast(0.92) saturate(1) sepia(0.04); }
