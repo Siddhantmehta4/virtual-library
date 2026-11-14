@@ -110,7 +110,7 @@ function bookEl(b, bay, index) {
   btn.addEventListener("pointerenter", addFront);
   btn.addEventListener("focus", addFront);
   if (b.status === "reading") body.append(el("span", "ribbon"));
-  if (b.kind === "rec" && b.recommender) body.append(el("span", "tag", b.recommender));
+  if (b.kind === "rec" && b.recommender) body.append(el("span", "tag-thread"), el("span", "tag", b.recommender));
   btn.append(body);
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -284,8 +284,13 @@ function fillBay(bay, all) {
 function syncPerspective(bay) {
   const s = bay.scroller;
   s.style.perspective = `${PERSPECTIVE}px`;
-  const pad = state.zoom === bay ? bay.zpad || 0 : 0;
-  s.style.perspectiveOrigin = `${EYE.x - bayWindow(bay).x - pad + s.scrollLeft}px ${EYE.y - (bay.top - LIFT)}px`;
+  if (state.zoom === bay) {
+    // the close-up photo is taken straight on from mid-height, so the books are seen the same way:
+    // tops just visible, no sideways lean into the side walls
+    s.style.perspectiveOrigin = `${s.clientWidth / 2 + s.scrollLeft}px ${LIFT + (bay.base - bay.top) * 0.42}px`;
+  } else {
+    s.style.perspectiveOrigin = `${EYE.x - bayWindow(bay).x + s.scrollLeft}px ${EYE.y - (bay.top - LIFT)}px`;
+  }
   if (state.zoom === bay) {
     const max = s.scrollWidth - s.clientWidth;
     bay.el.classList.toggle("fade-l", s.scrollLeft > 4);
@@ -497,6 +502,7 @@ function openZoom(bay) {
   fillBay(bay, true);
   bay.el.classList.add("zoomed");
   bay.plateEl.classList.add("current");
+  syncPerspective(bay);
   placeCurtain(bay);
   placeDepth(bay);
   $("scene").classList.add("zooming");
@@ -849,7 +855,7 @@ function buildObjects() {
     const i = Math.floor(Math.random() * shelved.length);
     openDetail(node, shelved[i], shelved, i, true);
   }));
-  state.planeEl = makeObject(OBJECTS.plane, "Click to book a flight to my shelf.", (node) => openRecForm(node));
+  state.planeEl = makeObject(OBJECTS.plane, "Click to send me a book.", (node) => openRecForm(node));
   layer.append(state.planeEl);
   addPlant();
   const glow = $("lampGlow");
@@ -887,12 +893,20 @@ function addCard() {
   card.setAttribute("aria-label", "Recommend a book");
   Object.assign(card.style, { left: `${C.x - C.w / 2}px`, top: `${C.top}px`, width: `${C.w}px`, height: `${C.h}px` });
   const ink = el("span", "rec-note-ink");
-  ["Your", "Favorites!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
+  ["Your", "recommendations!"].forEach((line, i) => ink.append(el("span", `rn rn-${i + 1}`, line)));
   // the lifted lower edge: a deeper shadow there, the paper curving away from the wood
   card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
   $("objects").append(card);
+  // the writing is as large as the note allows: the longest line just fits across it
+  const fit = () => {
+    ink.style.fontSize = "21px";
+    const widest = Math.max(...[...ink.children].map((n) => n.scrollWidth));
+    if (widest > ink.clientWidth) ink.style.fontSize = `${(21 * ink.clientWidth / widest).toFixed(1)}px`;
+  };
+  fit();
+  document.fonts.load("700 21px 'Dancing Script'").then(fit, () => {});
 }
 
 // =====================================================================
