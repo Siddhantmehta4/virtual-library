@@ -138,16 +138,15 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     // one smooth glide: in through the right-hand edge at mid-height, a long gentle descent with
     // a single soft curve, settling onto its spot. It starts a little further away (smaller) and
     // comes nearer as it lands, so it reaches its resting size only on touchdown.
-    const bx = base.x + vw / 2, by = vh / 2 - base.y; // the landing spot in screen pixels
+    const bx = base.x + vw / 2, by = vh / 2 - base.y; // landing spot in screen pixels
+    // one even descent, slightly bowed: enters at mid-height, glides down and left, touches down
     const pts = [
       W(vw + size * 1.5, vh * 0.5),
-      W(vw - (vw - bx) * 0.35, vh * 0.55),
-      W(bx + (vw - bx) * 0.35, by - (by - vh * 0.5) * 0.25),
-      W(bx + size * 0.7, by - size * 0.12),
+      W(bx + (vw - bx) * 0.55, vh * 0.5 + (by - vh * 0.5) * 0.3),
+      W(bx + size * 0.9, by - size * 0.18),
       base.clone(),
     ];
-
-    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 4600, abs: true };
+    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 3600, abs: true };
   }
   function flyOnce() { flyIn(); }
   function arriveNow() { arrived = true; }
@@ -187,19 +186,16 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
       const e = ease(t);
       const p = flight.curve.getPointAt(e);
       const tan = flight.curve.getTangentAt(Math.min(0.999, Math.max(0.001, e)));
-      const ahead = flight.curve.getTangentAt(Math.min(0.999, e + 0.03));
-      // bank into turns using the screen-plane curvature, plus a gentle roll that comes and goes
-      const turn = tan.x * ahead.y - tan.y * ahead.x;
-      const bank = THREE.MathUtils.clamp(turn * 10, -0.35, 0.35);
-      m4.lookAt(new THREE.Vector3(), tan.clone().negate(), new THREE.Vector3(0, 1, 0));
-      const flyQ = new THREE.Quaternion().setFromRotationMatrix(m4)
-        .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI / 2, 0)))
-        .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(bank, 0, 0)));
-      const blend = flight.abs ? Math.min(1, (1 - t) / 0.16) : Math.min(1, Math.min(t / 0.1, (1 - t) / 0.12));
-      tmpQ.copy(restQ).slerp(flyQ, THREE.MathUtils.smoothstep(blend, 0, 1));
+      // flight pose: nose pointing left along the descent, wings level, top turned a little toward
+      // the room; it settles into the landed pose over the last stretch. It never banks or turns.
+      const pitch = flight.abs ? Math.atan2(-tan.y, Math.abs(tan.x) + 1e-6) : 0;
+      const flyQ = floorQ.clone()
+        .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI + 0.4, 0)))
+        .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -pitch * 0.8));
+      tmpQ.copy(flyQ).slerp(restQ, THREE.MathUtils.smoothstep(t, 0.78, 1));
       plane.quaternion.copy(tmpQ);
       plane.position.copy(flight.abs ? p : base.clone().add(p));
-      if (flight.abs) plane.scale.setScalar(size * (0.72 + 0.28 * e));
+      if (flight.abs) plane.scale.setScalar(size * (0.45 + 0.55 * THREE.MathUtils.smoothstep(t, 0.55, 1)));
       if (t >= 1) { flight = null; arrived = true; }
     } else {
       plane.quaternion.copy(restQ);
@@ -214,6 +210,6 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);
-  window.__plane3d = { plane, camera, get flying() { return !!flight; } };
+  window.__plane3d = { plane, camera, THREE, get flying() { return !!flight; } };
   onReady && onReady({ flyOnce, arriveNow });
 }

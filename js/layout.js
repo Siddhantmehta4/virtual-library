@@ -88,7 +88,7 @@ export const OBJECTS = {
   book: { id: "book", x: 2010, base: 495, sink: 12, w: 220, h: 65, foot: 0.744, rot: -1.5, zone: "arch-right" },
   pen: { id: "pen", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
-  plane: { id: "plane", x: 2275, base: 1482, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
+  plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
   // the note propped in the Recommended bay, tied by a string to the plane
   // pinned to the front of the plinth at the bottom-right, half hanging over its lower edge

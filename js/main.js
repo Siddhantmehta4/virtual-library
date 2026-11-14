@@ -1,6 +1,7 @@
 import { loadLibrary } from "./data.js";
 import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITLE } from "./layout.js";
 import { ESTATE_URL, SUPABASE_URL, SUPABASE_KEY } from "./config.js";
+import { makeSpineCanvas, SPINE_FONT_LOADS } from "./spines.js";
 
 const SHOW_OBJECTS = true;
 
@@ -53,24 +54,8 @@ function assignBooks(books, recs) {
 // ---------- one book ----------
 const CLOTHS = ["cloth-black", "cloth-linen", "cloth-weave"];
 function spineFaces(b) {
-  const spine = el("span", `spine f-${b.face} fin-${b.finish}`);
-  if (b.finish === "cloth") {
-    let h = 0;
-    for (const c of String(b.id)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-    spine.style.setProperty("--tex", `url("assets/tex/${CLOTHS[h % CLOTHS.length]}.jpg")`);
-  }
-  if (b.cover) {
-    const strip = el("span", "strip");
-    strip.style.backgroundImage = `url("${b.cover}")`;
-    spine.append(strip);
-  }
-  spine.append(el("span", "band top"), el("span", "band bot"));
-  spine.append(el("span", "t" + (b.caps ? " caps" : ""), b.title));
-  if (b.width >= 44) {
-    spine.classList.add("has-author");
-    spine.append(el("span", "a", b.author));
-  }
-  spine.append(el("span", "sheen"), el("span", "wear"), el("span", "light"));
+  const spine = el("span", `spine fin-${b.finish}`);
+  spine.append(makeSpineCanvas(b), el("span", "light"));
   return spine;
 }
 
@@ -85,6 +70,7 @@ function applyBookVars(node, b, k) {
   s.setProperty("--ink", b.ink);
   s.setProperty("--wear", b.wear);
   s.setProperty("--lean", `${b.lean}deg`);
+  s.setProperty("--dz", `${(b.depth || 0) * 0.6}px`);
   s.setProperty("--fs", clamp(b.width * 0.46, 8, 15));
 }
 
@@ -1353,7 +1339,11 @@ async function boot() {
   const photo = $("photo");
   const photoReady = photo.complete ? Promise.resolve() : new Promise((r) => { photo.onload = r; photo.onerror = r; });
   try {
-    const [{ books, recs }] = await Promise.all([loadLibrary(), photoReady]);
+    const fontsReady = Promise.race([
+      Promise.all(SPINE_FONT_LOADS.map((f) => document.fonts.load(f).catch(() => null))),
+      new Promise((r) => setTimeout(r, 2500)),
+    ]);
+    const [{ books, recs }] = await Promise.all([loadLibrary(), photoReady, fontsReady]);
     assignBooks(books, recs);
     buildRoom();
     const n = books.filter((b) => b.status !== "unfinished").length;

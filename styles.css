@@ -392,7 +392,7 @@ div.obj { cursor: default; }
   inset: 0;
   transform-style: preserve-3d;
   transform-origin: 100% 100%;
-  transform: rotateZ(var(--lean));
+  transform: translateZ(var(--dz, 0px)) rotateZ(var(--lean));
   transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .book:hover .b3d, .book:focus-visible .b3d {
@@ -436,10 +436,12 @@ div.obj { cursor: default; }
   inset: 0;
   overflow: hidden;
   background: var(--spine);
-  border-radius: 1px 1px 0 0;
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.4);
+  border-radius: 1.5px 1.5px 0 0;
   backface-visibility: hidden;
 }
+.spine-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* the painted spine carries its own material; the old CSS layers are retired */
+.spine::after { display: none !important; }
 /* real material grain over every spine (photographed cloth and paper) */
 /* surface by binding: cloth hardcovers get woven cloth, paperbacks get printed card stock
    (matte: real paper fibre; gloss: smooth with a hard highlight) */
@@ -561,7 +563,7 @@ div.obj { cursor: default; }
 .unlit .light {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55));
 }
-.bay .spine { filter: brightness(0.86) saturate(0.88); box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.45), 2px 0 4px rgba(0, 0, 0, 0.45); }
+.bay .spine { filter: brightness(0.9) saturate(0.92); box-shadow: 2px 0 5px rgba(0, 0, 0, 0.55), -1px 0 2px rgba(0, 0, 0, 0.35); }
 .lit .pages { filter: brightness(0.72) sepia(0.35); }
 .unlit .pages { filter: brightness(0.4) sepia(0.2); }
 
