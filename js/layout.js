@@ -88,6 +88,6 @@ export const OBJECTS = {
   book: { id: "book", x: 2010, base: 495, sink: 12, w: 220, h: 65, foot: 0.744, rot: -1.5, zone: "arch-right" },
   pen: { id: "pen", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", x: 690, base: 1490, w: 96, h: 68, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
-  plane: { id: "plane", x: 2335, base: 1496, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
+  plane: { id: "plane", x: 2280, base: 1478, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
 };

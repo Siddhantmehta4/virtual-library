@@ -86,7 +86,7 @@ function normalizeRec(r) {
 export async function loadLibrary() {
   const [books, recs] = await Promise.all([
     get("books?select=*&order=date_finished.desc.nullslast,title.asc"),
-    get("recommendations?select=*&status=eq.approved&order=created_at.desc").catch(() => []),
+    get("recommendations?select=id,created_at,recommender,note,title,author,cover,ol_key,year,spine,band,ink,width,height,status&status=in.(pending,approved)&order=created_at.desc").catch(() => []),
   ]);
   return { books: books.map(normalizeBook), recs: recs.map(normalizeRec) };
 }

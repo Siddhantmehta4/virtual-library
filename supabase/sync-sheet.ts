@@ -357,16 +357,23 @@ async function handle(req: Request) {
   for (const a of approvals) {
     const v = String(a.approved ?? "").trim().toLowerCase();
     if (!a.rec_id || (v !== "yes" && v !== "no")) continue;
-    await db.from("recommendations")
-      .update({ status: v === "yes" ? "approved" : "rejected" })
-      .eq("id", a.rec_id)
-      .in("status", ["pending", "approved", "rejected"]);
+    if (v === "yes") {
+      // approving publishes the note too
+      const { data: row } = await db.from("recommendations").select("pending_note").eq("id", a.rec_id).single();
+      await db.from("recommendations")
+        .update({ status: "approved", note: row?.pending_note ?? null })
+        .eq("id", a.rec_id)
+        .in("status", ["pending", "approved", "rejected"]);
+    } else {
+      await db.from("recommendations").update({ status: "rejected" }).eq("id", a.rec_id)
+        .in("status", ["pending", "approved", "rejected"]);
+    }
   }
 
   // recommendations you've since read
   const libTitles = new Set(books.map((b) => norm(b.title)));
   const { data: recs } = await db.from("recommendations")
-    .select("id, created_at, recommender, title, author, note, status")
+    .select("id, created_at, recommender, title, author, note, pending_note, status")
     .order("created_at");
   const readIds = (recs ?? [])
     .filter((r: any) => r.status !== "read" && libTitles.has(norm(r.title)))
@@ -375,6 +382,10 @@ async function handle(req: Request) {
 
   return json({
     rows: [...results].map(([row, v]) => ({ row, ...v })),
-    recommendations: (recs ?? []).map((r: any) => (readIds.includes(r.id) ? { ...r, status: "read" } : r)),
+    recommendations: (recs ?? []).map((r: any) => ({
+      ...r,
+      note: r.note ?? r.pending_note,
+      status: readIds.includes(r.id) ? "read" : r.status,
+    })),
   });
 }

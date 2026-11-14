@@ -1,6 +1,6 @@
 // Virtual Library — recommend
 // Receives a visitor's recommendation from the paper-plane form and stores it as pending.
-// Nothing shows on the site until it's approved in the Sheet.
+// The book and name show on the site at once; the visitor's note only after approval in the Sheet.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -12,6 +12,8 @@ const cors = {
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...cors, "content-type": "application/json" } });
 const text = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
+// names show on the site straight away, so the worst words are turned away at the door
+const BLOCKED = /(fuck|shit|cunt|nigg|fag|bitch|whore|slut|rape|nazi|hitler|porn|dick|cock|pussy|retard|kys|http|www)/;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -25,6 +27,9 @@ Deno.serve(async (req) => {
     const author = text(body.author, 200);
     const note = text(body.note, 500) || null;
     if (!recommender) return json({ error: "Add your name so I know who to thank." }, 400);
+    if (BLOCKED.test(recommender.toLowerCase().replace(/[^a-z]/g, ""))) {
+      return json({ error: "Try a different name." }, 400);
+    }
     if (!title) return json({ error: "Pick a book first." }, 400);
 
     const cover = String(body.cover ?? "");
@@ -47,7 +52,8 @@ Deno.serve(async (req) => {
     if (dupe && dupe.length) return json({ ok: true });
 
     const { error } = await db.from("recommendations").insert({
-      recommender, title, author, note, cover: safeCover, year, ol_key, status: "pending",
+      // the book and the name go up immediately; the note waits for approval in the Sheet
+      recommender, title, author, note: null, pending_note: note, cover: safeCover, year, ol_key, status: "pending",
     });
     if (error) return json({ error: "Couldn't save it just now. Try again in a moment." }, 500);
     return json({ ok: true });

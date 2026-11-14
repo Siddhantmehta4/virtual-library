@@ -299,10 +299,9 @@ function overviewTransform() {
   const vw = innerWidth, vh = innerHeight;
   const viewH = CASE.floor - CASE.y0 + 20;
   if (vw >= vh) {
-    // case on the left, the stretch of wall to its right carries the title
-    const left = CASE.x0 - 40;
-    const s = Math.min(vw / (IMG.w - left), vh / viewH);
-    const tx = vw - IMG.w * s;
+    // case centred, equal wall either side; the right-hand strip carries the title
+    const s = Math.min(vw / (CASE.x1 - CASE.x0 + 80), vh / viewH);
+    const tx = vw / 2 - ((CASE.x0 + CASE.x1) / 2) * s;
     let ty = vh - CASE.floor * s;
     if (vh / s > viewH) ty = vh / 2 - ((CASE.y0 + CASE.floor) / 2) * s;
     if (IMG.h * s >= vh) ty = clamp(ty, vh - IMG.h * s, 0);
@@ -684,7 +683,15 @@ function placeTitle() {
   const side = innerWidth >= innerHeight;
   t.classList.toggle("side", side);
   t.classList.toggle("top", !side);
-  const box = side ? TITLE.side : TITLE.top;
+  const box = { ...(side ? TITLE.side : TITLE.top) };
+  if (side) {
+    // fit the stacked title into whatever wall shows to the right of the case
+    const o = overviewTransform();
+    const right = Math.min(IMG.w, (innerWidth - o.tx) / o.s);
+    box.x = CASE.x1 + 16;
+    box.w = Math.max(120, right - box.x - 16);
+    t.style.setProperty("--title-size", `${Math.min(108, box.w / 4.3)}px`);
+  }
   Object.assign(t.style, { left: `${box.x}px`, width: `${box.w}px`, top: `${box.y}px`, height: box.h ? `${box.h}px` : "" });
   const z = box.zone;
   Object.assign($("wallZone").style, { left: `${z.x}px`, top: `${z.y}px`, width: `${z.w}px`, height: `${z.h}px` });
@@ -1227,6 +1234,22 @@ async function sendRec() {
   }
 }
 
+// ---------- the paper plane in 3D (falls back to the photo if WebGL isn't available) ----------
+function startPlane3D() {
+  if (!state.planeEl) return;
+  import("./plane3d.js").then(({ initPlane3D }) => {
+    initPlane3D({
+      anchor: state.planeEl,
+      isHidden: () => !!state.zoom || $("recForm").classList.contains("on"),
+      isDark: () => state.lightsOff,
+      onReady: ({ flyOnce }) => {
+        document.body.classList.add("plane-3d");
+        if (!reduceMotion) setTimeout(flyOnce, 5000);
+      },
+    });
+  }).catch((e) => console.warn("3D plane unavailable, using the photo", e));
+}
+
 // ---------- keys, resize, boot ----------
 addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
@@ -1304,6 +1327,7 @@ async function boot() {
     if (SHOW_OBJECTS) buildObjects();
     document.body.classList.add("ready");
     setupTitle();
+    startPlane3D();
   } catch (err) {
     console.error(err);
     $("status").textContent = "The library is closed for a moment. Try again shortly.";
