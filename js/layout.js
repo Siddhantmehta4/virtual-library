@@ -79,11 +79,14 @@ export const TITLE = {
 // Arch objects sit back on the shelf: the shelf top is above the camera, so their bases are hidden
 // behind the board's front edge (shelf line y≈495). sink = how far below that line the base really is.
 export const OBJECTS = {
-  lamp: { id: "lamp", x: 1418, base: 495, sink: 9, w: 139, h: 165, zone: "lamp" },
-  glasses: { id: "glasses", x: 738, base: 495, sink: 8, w: 58, h: 124, zone: "arch-left" },
-  hourglass: { id: "hourglass", x: 848, base: 495, sink: 7, w: 49, h: 93, zone: "arch-left" },
-  book: { id: "book", x: 2045, base: 495, sink: 10, w: 165, h: 49, foot: 0.744, zone: "arch-right" },
-  pen: { id: "pen", x: 2172, base: 495, sink: 4, w: 82, h: 22, zone: "arch-right" },
+  // left arch: holder a little left of centre and forward, hourglass set further back and turned slightly
+  glasses: { id: "glasses", x: 712, base: 495, sink: 9, w: 80, h: 172, zone: "arch-left" },
+  hourglass: { id: "hourglass", x: 868, base: 495, sink: 17, w: 66, h: 125, rot: 2, zone: "arch-left" },
+  // centre arch: lamp a touch off-centre, as if pushed aside
+  lamp: { id: "lamp", x: 1392, base: 495, sink: 10, w: 172, h: 204, zone: "lamp" },
+  // right arch: current read, pen dropped beside it at a casual angle
+  book: { id: "book", x: 2010, base: 495, sink: 12, w: 220, h: 65, foot: 0.744, rot: -1.5, zone: "arch-right" },
+  pen: { id: "pen", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", x: 690, base: 1490, w: 96, h: 68, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2335, base: 1496, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },

@@ -129,7 +129,9 @@ div.obj { cursor: default; }
   object-position: 50% 100%;
   pointer-events: none;
   user-select: none;
-  filter: var(--grade) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
+  filter: var(--grade) drop-shadow(var(--cast, 0 1px 1px) rgba(0, 0, 0, 0.55));
+  transform: rotate(var(--rot, 0deg));
+  transform-origin: 50% 100%;
   transition: filter 0.35s ease;
 }
 /* light falling across the object, clipped to its silhouette */
@@ -153,7 +155,8 @@ div.obj { cursor: default; }
   pointer-events: none;
 }
 .obj:hover { transform: translateY(-4px); }
-.obj:hover img { filter: var(--grade) brightness(1.18) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55)); }
+.obj:hover img { filter: var(--grade) brightness(1.15) drop-shadow(var(--cast, 0 1px 1px) rgba(0, 0, 0, 0.55)); }
+.obj .tint { transform: rotate(var(--rot, 0deg)); transform-origin: 50% 100%; }
 
 /* set back on a shelf above the camera: base hidden behind the board's edge, top leaning away,
    a little darker where it meets the shelf */
@@ -168,11 +171,13 @@ div.obj { cursor: default; }
 
 /* the arches are dim; light comes from the lamp in the middle arch */
 .zone-arch-left {
-  --grade: brightness(0.88) contrast(1.06) saturate(0.92) sepia(0.14);
+  --grade: brightness(0.96) contrast(1.1) saturate(1) sepia(0.06);
+  --cast: -7px -2px 7px;
   --light: linear-gradient(90deg, rgba(60, 34, 14, 0.3), rgba(255, 220, 170, 0) 65%);
 }
 .zone-arch-right {
-  --grade: brightness(0.88) contrast(1.06) saturate(0.92) sepia(0.14);
+  --grade: brightness(0.96) contrast(1.1) saturate(1) sepia(0.06);
+  --cast: 7px -2px 7px;
   --light: linear-gradient(270deg, rgba(60, 34, 14, 0.3), rgba(255, 220, 170, 0) 65%);
 }
 .zone-lamp {
@@ -1067,3 +1072,5 @@ body.lights-off .obj .tint { display: none; }
 body.lights-off .obj-lamp img { filter: brightness(0.5) saturate(0.7) !important; }
 body.lights-off .lamp-glow, body.lights-off .wall-title { opacity: 0 !important; }
 body.lights-off .photo-ext { filter: brightness(0.75); }
+/* the hourglass is dark glass on a dark panel: lift its highlights so its shape reads */
+.obj-hourglass { --grade: brightness(1.3) contrast(1.18) saturate(1); }

@@ -747,6 +747,7 @@ function makeObject(spec, label, onClick) {
     node.style.setProperty("--hide", `${Math.max(0, top + h - spec.base)}px`);
   }
   node.style.setProperty("--foot", `${(1 - foot) * 100}%`);
+  if (spec.rot) node.style.setProperty("--rot", `${spec.rot}deg`);
   if (spec.reflect) {
     const ref = el("img", "reflection");
     ref.src = src;
