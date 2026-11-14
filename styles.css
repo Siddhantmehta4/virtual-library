@@ -976,43 +976,54 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
   border-radius: 2px;
 }
 
-/* reader */
-.reader-sheet {
+/* reader: "The fine print", on the same smoked glass as the cards and the details panel */
+.reader .reader-sheet {
   width: min(760px, 100%);
   max-height: 86vh;
   display: flex;
   flex-direction: column;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(58, 46, 34, 0.66), rgba(20, 15, 10, 0.8));
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  backdrop-filter: blur(18px) saturate(1.25);
+  border: 1px solid rgba(255, 238, 210, 0.13);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 215, 0.14), 0 30px 70px rgba(0, 0, 0, 0.55);
+  color: #f3ead9;
   transform: translateY(18px);
   transition: transform 0.55s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 .reader.on .reader-sheet { transform: none; }
-.reader-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px 18px; padding: 22px 28px 14px; border-bottom: 1px solid rgba(155, 42, 34, 0.3); }
-.reader-title { margin: 0; font-family: var(--font-display); font-style: italic; font-weight: 700; font-size: 32px; }
+.reader-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px 18px; padding: 22px 28px 16px; border-bottom: 1px solid rgba(255, 238, 210, 0.1); }
+.reader-title { margin: 0; font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 34px; color: #fbf4e6; }
 .reader-sorts { display: flex; gap: 4px; flex-wrap: wrap; }
-.reader-sort { border: 0; background: none; padding: 4px 9px; font-family: var(--font-book); font-variant: small-caps; font-size: 16px; letter-spacing: 0.04em; color: #8a6f4a; cursor: pointer; border-radius: 2px; }
-.reader-sort.on { color: #2e2419; background: rgba(155, 120, 60, 0.16); }
-.reader-close { margin-left: auto; border: 0; background: none; font-size: 30px; line-height: 1; color: #6b5538; cursor: pointer; }
-.reader-body { overflow-y: auto; padding: 6px 28px 26px; }
+.reader-sort { border: 1px solid transparent; background: none; padding: 4px 10px; font-family: "Space Mono", monospace; font-size: 11.5px; color: rgba(243, 234, 217, 0.6); cursor: pointer; border-radius: 4px; transition: color 0.2s ease, background 0.2s ease; }
+.reader-sort:hover { color: rgba(243, 234, 217, 0.9); }
+.reader-sort.on { color: #fbf4e6; background: rgba(255, 240, 215, 0.08); border-color: rgba(255, 238, 210, 0.18); }
+.reader-close { margin-left: auto; border: 0; background: none; font-size: 28px; line-height: 1; color: rgba(243, 234, 217, 0.6); cursor: pointer; }
+.reader-close:hover { color: #fbf4e6; }
+.reader-body { overflow-y: auto; padding: 6px 28px 26px; scrollbar-width: thin; scrollbar-color: rgba(243, 234, 217, 0.25) transparent; }
 .reader-search {
   flex-basis: 100%;
   margin-top: 4px;
-  padding: 9px 12px;
-  border: 1px solid rgba(120, 95, 55, 0.35);
-  border-radius: 2px;
-  background: rgba(255, 252, 244, 0.7);
-  font-family: var(--font-book);
-  font-size: 17px;
-  color: #2e2419;
+  padding: 10px 13px;
+  border: 1px solid rgba(255, 238, 210, 0.16);
+  border-radius: 5px;
+  background: rgba(255, 240, 215, 0.06);
+  font-family: "Karla", sans-serif;
+  font-size: 15px;
+  color: #f3ead9;
 }
-.reader-search:focus { outline: 2px solid rgba(155, 42, 34, 0.45); outline-offset: 1px; }
-.reader-group { margin: 20px 0 4px; font-family: var(--font-display); font-style: italic; font-weight: 700; font-size: 21px; color: #7d2a20; }
-.reader-row { display: flex; width: 100%; align-items: baseline; gap: 14px; padding: 7px 0; border: 0; border-bottom: 1px dotted rgba(120, 95, 55, 0.3); background: none; text-align: left; cursor: pointer; color: inherit; }
-.reader-row:hover .rr-title { color: #7d2a20; }
+.reader-search::placeholder { color: rgba(243, 234, 217, 0.45); }
+.reader-search:focus { outline: none; border-color: rgba(255, 238, 210, 0.35); background: rgba(255, 240, 215, 0.09); }
+.reader-group { margin: 22px 0 4px; font-family: "Space Mono", monospace; font-size: 11.5px; letter-spacing: 0.04em; color: rgba(243, 234, 217, 0.55); }
+.reader-row { display: flex; width: 100%; align-items: baseline; gap: 14px; padding: 8px 0; border: 0; border-bottom: 1px solid rgba(255, 238, 210, 0.07); background: none; text-align: left; cursor: pointer; color: inherit; }
+.reader-row:hover .rr-title { color: #fff; }
+.reader-row:hover { background: linear-gradient(90deg, rgba(255, 240, 215, 0.05), rgba(255, 240, 215, 0)); }
 .rr-main { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
-.rr-title { font-family: var(--font-display); font-weight: 600; font-size: 19px; }
-.rr-author { font-family: var(--font-book); font-style: italic; font-size: 15px; color: #5d4a33; }
-.rr-meta { font-family: var(--font-book); font-size: 14px; color: #8a6f4a; white-space: nowrap; }
-.reader-empty { font-family: var(--font-display); font-style: italic; font-size: 20px; color: #8a6f4a; }
+.rr-title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 20px; color: #f6eedd; }
+.rr-author { font-family: "Karla", sans-serif; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(243, 234, 217, 0.6); }
+.rr-meta { font-family: "Space Mono", monospace; font-size: 11.5px; color: rgba(243, 234, 217, 0.55); white-space: nowrap; }
+.reader-empty { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 20px; color: rgba(243, 234, 217, 0.6); }
 
 /* recommendation form: unfolds out of the paper plane */
 .rec-sheet {
