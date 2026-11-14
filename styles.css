@@ -333,7 +333,7 @@ div.obj { cursor: default; }
   background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 -1px 0 rgba(20, 12, 2, 0.9), 0 1px 0 rgba(255, 238, 190, 0.28);
-  transform: translateY(0.16em);
+  transform: translateY(0.34em);
 }
 
 .depth {
@@ -1172,3 +1172,19 @@ body.lights-off .rec-note { filter: brightness(0.28); }
   transition: opacity 0.8s ease 0.4s;
 }
 .scene.zooming .grain { opacity: 0; }
+
+/* zoomed back panel: the centre arch's wood with the lamp's warm halo */
+.zoom-back {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse 60% 85% at 50% 18%, rgba(255, 196, 120, 0.30), rgba(255, 170, 90, 0.10) 45%, rgba(0, 0, 0, 0) 75%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.35)),
+    url("assets/tex/arch-panel.jpg") center / cover;
+  box-shadow: inset 14px 0 18px -10px rgba(0, 0, 0, 0.7), inset -14px 0 18px -10px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.7s ease 0.35s;
+}
+.bay.zoomed .zoom-back { opacity: 1; }

@@ -135,30 +135,25 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
     const nc = n ? toWorld(n.x, n.y) : base.clone().add(new THREE.Vector3(size, size * 3, 0));
     const R = Math.max(size * 1.1, n ? n.r * 0.95 : size);
     const W = (x, y) => toWorld(x, y);
-    // in through the right-hand edge at mid-height, a long smooth glide down, a dip just
-    // before the note, one loop around it, and an easy glide onto its spot. Depth stays shallow,
-    // so it never swells toward the camera and stays at its landed size.
-    const zz = size * 0.15;
+    // one smooth glide: in through the right-hand edge at mid-height, a long gentle descent with
+    // a single soft curve, settling onto its spot. It starts a little further away (smaller) and
+    // comes nearer as it lands, so it reaches its resting size only on touchdown.
+    const bx = base.x + vw / 2, by = vh / 2 - base.y; // the landing spot in screen pixels
     const pts = [
-      W(vw + size * 2, vh * 0.5).setZ(zz),
-      W(vw * 0.93, vh * 0.54).setZ(zz),
-      W(vw * 0.86, vh * 0.62).setZ(zz),
-      nc.clone().add(new THREE.Vector3(R * 2.0, R * 0.3, zz)),          // dips in just before the note
-      nc.clone().add(new THREE.Vector3(R * 0.2, R * 1.25, zz)),         // over the top
-      nc.clone().add(new THREE.Vector3(-R * 1.3, R * 0.1, zz)),         // round its left side
-      nc.clone().add(new THREE.Vector3(-R * 0.3, -R * 1.15, zz)),       // under it
-      nc.clone().add(new THREE.Vector3(R * 1.25, -R * 0.45, zz)),       // back up its right
-      nc.clone().lerp(base, 0.65).add(new THREE.Vector3(R * 0.9, 0, zz)),
-      base.clone().add(new THREE.Vector3(size * 0.5, size * 0.12, 0)),
+      W(vw + size * 1.5, vh * 0.5),
+      W(vw - (vw - bx) * 0.35, vh * 0.55),
+      W(bx + (vw - bx) * 0.35, by - (by - vh * 0.5) * 0.25),
+      W(bx + size * 0.7, by - size * 0.12),
       base.clone(),
     ];
-    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 6800, abs: true };
+
+    flight = { curve: new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5), start: performance.now(), dur: 4600, abs: true };
   }
   function flyOnce() { flyIn(); }
   function arriveNow() { arrived = true; }
 
   const tmpQ = new THREE.Quaternion(), m4 = new THREE.Matrix4();
-  const ease = (t) => 1 - Math.pow(1 - t, 1.9); // steady through the air, slowing into the landing
+  const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2) * 0.35 + (1 - Math.pow(1 - t, 2)) * 0.65; // eases in, glides, settles
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -195,7 +190,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
       const ahead = flight.curve.getTangentAt(Math.min(0.999, e + 0.03));
       // bank into turns using the screen-plane curvature, plus a gentle roll that comes and goes
       const turn = tan.x * ahead.y - tan.y * ahead.x;
-      const bank = THREE.MathUtils.clamp(turn * 22, -1.1, 1.1) + Math.sin(t * Math.PI * 5) * 0.12 * (1 - t);
+      const bank = THREE.MathUtils.clamp(turn * 10, -0.35, 0.35);
       m4.lookAt(new THREE.Vector3(), tan.clone().negate(), new THREE.Vector3(0, 1, 0));
       const flyQ = new THREE.Quaternion().setFromRotationMatrix(m4)
         .multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI / 2, 0)))
@@ -204,6 +199,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
       tmpQ.copy(restQ).slerp(flyQ, THREE.MathUtils.smoothstep(blend, 0, 1));
       plane.quaternion.copy(tmpQ);
       plane.position.copy(flight.abs ? p : base.clone().add(p));
+      if (flight.abs) plane.scale.setScalar(size * (0.72 + 0.28 * e));
       if (t >= 1) { flight = null; arrived = true; }
     } else {
       plane.quaternion.copy(restQ);

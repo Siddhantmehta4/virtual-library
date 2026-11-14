@@ -220,6 +220,11 @@ function buildRoom() {
       box.addEventListener("pointerenter", () => showBayCard(box, bay));
       box.addEventListener("pointerleave", hideCard);
     }
+    // zoomed in, the back panel becomes the centre arch's wood, warmed by the lamp's halo
+    const back = el("div", "zoom-back");
+    back.style.top = `${LIFT}px`;
+    back.style.height = `${bay.base - bay.top}px`;
+    box.prepend(back);
     bay.el = box;
     bay.scroller = scroller;
     bay.row = row;
