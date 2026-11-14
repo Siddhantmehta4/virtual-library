@@ -88,10 +88,11 @@ export const OBJECTS = {
   // right arch: the pen dropped beside the reading pile at a casual angle
   // the current read on top of a short pile of books (built from the library itself)
   stack: { x: 2018, base: 495, sink: 9 },
-  // centre arch: a cream typewriter with a few magazines beside it, where the lamp used to stand
-  typewriter: { id: "typewriter", img: "typewriter-cream", x: 1440, base: 495, sink: 8, w: 358, h: 117, zone: "arch-right" },
+  // centre arch, laid out like the reference: two old books leaning on the left wall, the cream
+  // typewriter, and a stack of magazines to its right
+  typewriter: { id: "typewriter", img: "writing-desk", x: 1360, base: 495, sink: 10, w: 534, h: 158, zone: "arch-right" },
   // right arch: a walnut record player, lid up, beside a long row of record sleeves
-  speaker: { id: "speaker", img: "record-player", x: 2081, base: 495, sink: 8, w: 440, h: 186, zone: "arch-right" },
+  speaker: { id: "speaker", img: "record-player", x: 2081, base: 495, sink: 7, w: 380, h: 161, zone: "arch-right" },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
