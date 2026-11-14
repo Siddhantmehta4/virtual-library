@@ -819,6 +819,27 @@ function addPlant() {
   const node = makeObject(spec, "Looks thirsty.", (n) => waterPlant(n, sh));
   sh.el.append(node);
   state.plantEl = node;
+  addCard();
+}
+
+// A torn note propped against the back of the Recommended bay; a string ties it to the plane.
+function addCard() {
+  const C = OBJECTS.card;
+  const bay = state.bays.find((b) => b.home === C.bay);
+  if (!bay) return;
+  const card = el("button", "rec-note");
+  card.type = "button";
+  card.setAttribute("aria-label", "Recommend a book");
+  const x = bay.w - C.inset, base = bay.base - bay.top + LIFT;
+  Object.assign(card.style, { left: `${x - C.w / 2}px`, top: `${base - C.h}px`, width: `${C.w}px`, height: `${C.h}px` });
+  card.style.setProperty("--rot", `${C.rot}deg`);
+  const ink = el("span", "rec-note-ink");
+  ink.append(el("span", "rn-1", "Recommend a book"), el("span", "rn-2", "fly it to me"));
+  const knot = el("span", "rec-note-knot");
+  card.append(el("span", "rec-note-shadow"), el("span", "rec-note-paper"), ink, knot);
+  card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
+  bay.el.append(card);
+  state.cardKnot = knot;
 }
 
 // =====================================================================
@@ -1242,6 +1263,12 @@ function startPlane3D() {
       anchor: state.planeEl,
       isHidden: () => !!state.zoom || $("recForm").classList.contains("on"),
       isDark: () => state.lightsOff,
+      tie: () => {
+        const k = state.cardKnot;
+        if (!k || !k.isConnected) return null;
+        const r = k.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      },
       onReady: ({ flyOnce }) => {
         document.body.classList.add("plane-3d");
         if (!reduceMotion) setTimeout(flyOnce, 5000);

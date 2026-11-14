@@ -6,7 +6,7 @@ import * as THREE from "./vendor/three.module.min.js";
 const FOV = 30;
 const FLOOR_TILT = 0.36; // radians: how steeply the room camera looks down at the floor
 
-export function initPlane3D({ anchor, isHidden, isDark, onReady }) {
+export function initPlane3D({ anchor, isHidden, isDark, tie, onReady }) {
   const canvas = document.createElement("canvas");
   canvas.className = "plane3d";
   canvas.setAttribute("aria-hidden", "true");
@@ -61,6 +61,29 @@ export function initPlane3D({ anchor, isHidden, isDark, onReady }) {
   const plane = new THREE.Group();
   plane.add(mesh);
   scene.add(plane);
+
+  // ---------- the string from the note in the bay to the plane's tail ----------
+  const twineMat = new THREE.MeshStandardMaterial({ color: 0xcdb48c, roughness: 1 });
+  const twine = new THREE.Mesh(new THREE.BufferGeometry(), twineMat);
+  twine.castShadow = true;
+  scene.add(twine);
+  let twineAlpha = 1;
+  twineMat.transparent = true;
+  const tailLocal = new THREE.Vector3(0.02, 0.02, 0);
+  function updateTwine(size) {
+    const t = tie && tie();
+    if (!t) { twine.visible = false; return; }
+    const a = toWorld(t.x, t.y);
+    const b = plane.localToWorld(tailLocal.clone());
+    const mid = a.clone().lerp(b, 0.5);
+    const sag = Math.max(size * 0.12, a.distanceTo(b) * 0.08);
+    mid.y -= sag; mid.z += size * 0.15;
+    const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+    twine.geometry.dispose();
+    twine.geometry = new THREE.TubeGeometry(curve, 28, Math.max(0.6, size * 0.007), 5, false);
+    twine.visible = twineAlpha > 0.02;
+    twineMat.opacity = twineAlpha;
+  }
 
   // ---------- floor: invisible except for the shadow ----------
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.5 }));
@@ -165,6 +188,10 @@ export function initPlane3D({ anchor, isHidden, isDark, onReady }) {
       plane.position.copy(base).add(new THREE.Vector3(0, bob, bob * 0.4));
       plane.rotateX(lift * -0.12);
     }
+    // the string slips off while the plane is in the air and settles back once it lands
+    twineAlpha += ((flight ? 0 : 1) - twineAlpha) * (flight ? 0.25 : 0.05);
+    plane.updateMatrixWorld(true);
+    updateTwine(size);
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);

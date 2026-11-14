@@ -1079,3 +1079,62 @@ body.lights-off .photo-ext { filter: brightness(0.75); }
 .plane3d { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; transition: opacity 0.4s ease; }
 body.plane-3d .obj-plane img, body.plane-3d .obj-plane .tint, body.plane-3d .obj-plane .contact, body.plane-3d .obj-plane .reflection { opacity: 0; }
 body.plane-3d .obj-plane:hover { transform: none; }
+
+/* ---------- the note in the Recommended bay ---------- */
+.rec-note {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotate(var(--rot));
+  transform-origin: 50% 100%;
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.05);
+}
+.rec-note:hover { transform: rotate(var(--rot)) translateY(-3px); }
+.rec-note-paper {
+  position: absolute;
+  inset: 0;
+  background: url("assets/ui/card.png") center / 100% 100% no-repeat;
+  /* lit from the strip above: brighter at the top, falling off toward the shelf */
+  filter: brightness(0.95) sepia(0.12);
+  -webkit-mask: url("assets/ui/card.png") center / 100% 100% no-repeat;
+  mask: url("assets/ui/card.png") center / 100% 100% no-repeat;
+}
+.rec-note-paper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 190, 120, 0.18), rgba(0, 0, 0, 0) 40%, rgba(40, 20, 8, 0.32));
+  mix-blend-mode: multiply;
+}
+/* the card leans back against the panel: a soft shadow behind and under it */
+.rec-note-shadow {
+  position: absolute;
+  inset: 4% -4% -3% 6%;
+  background: radial-gradient(ellipse at 50% 60%, rgba(0, 0, 0, 0.55), transparent 70%);
+  filter: blur(4px);
+}
+.rec-note-ink {
+  position: absolute;
+  inset: 22% 8% 12%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-family: "Caveat", "Segoe Script", cursive;
+  font-weight: 600;
+  line-height: 1;
+  color: #1d2533;
+  opacity: 0.86;
+  mix-blend-mode: multiply;
+  transform: rotate(-2deg);
+}
+.rn-1 { font-size: 19px; white-space: nowrap; }
+.rn-2 { font-size: 18px; white-space: nowrap; margin-left: 22px; }
+.rec-note-knot { position: absolute; left: 70%; bottom: 7%; width: 4px; height: 4px; border-radius: 50%; background: #b89a6e; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5); }
+body.lights-off .rec-note { filter: brightness(0.28); }
+.scene.zooming .rec-note { pointer-events: none; }
+.bay.zoomed .rec-note { pointer-events: auto; }

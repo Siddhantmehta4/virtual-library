@@ -39,7 +39,7 @@ export const BOOK_K = 0.6;
 export const BAYS = BAY_GENRES.flatMap((genres, r) =>
   genres.map((genre, c) => ({
     genre,
-    reserve: genre === "Self-Help" ? 120 : 0,
+    reserve: genre === "Self-Help" ? 120 : genre === "Recommended" ? 160 : 0,
     row: r,
     col: c,
     lit: ROWS[r].lit,
@@ -90,4 +90,6 @@ export const OBJECTS = {
   deck: { id: "deck", x: 690, base: 1490, w: 96, h: 68, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2280, base: 1478, w: 150, h: 54, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
+  // the note propped in the Recommended bay, tied by a string to the plane
+  card: { bay: "Recommended", inset: 104, w: 150, h: 114, rot: -4 },
 };
