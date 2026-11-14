@@ -558,14 +558,50 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 }
 /* a visitor's recommendation: a string rises out of the pages, bends over the head of the book
    and hangs down the spine, with their name tag tied to its end */
+.tag-swing {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(3px);
+  transform-origin: 54% 0;
+  pointer-events: none;
+}
 .tag-thread {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: calc(24% + var(--k) * 2px);
-  transform: translateZ(3px);
-  pointer-events: none;
+}
+/* touch the book and the tag swings on its string, settling after a few small sways */
+.book:hover .tag-swing { animation: tag-sway 1.6s cubic-bezier(0.3, 0.6, 0.4, 1); }
+.book:hover .tag { animation: tag-lag 1.6s cubic-bezier(0.3, 0.6, 0.4, 1) 0.05s; }
+.book:hover .tag-thread path { animation: tag-wiggle 1.6s ease-out; }
+@keyframes tag-sway {
+  0% { transform: translateZ(3px) rotate(0); }
+  14% { transform: translateZ(3px) rotate(6deg); }
+  32% { transform: translateZ(3px) rotate(-4deg); }
+  50% { transform: translateZ(3px) rotate(2.4deg); }
+  68% { transform: translateZ(3px) rotate(-1.3deg); }
+  84% { transform: translateZ(3px) rotate(0.5deg); }
+  100% { transform: translateZ(3px) rotate(0); }
+}
+@keyframes tag-lag {
+  0% { transform: translateX(-50%) rotate(5deg); }
+  18% { transform: translateX(-50%) rotate(-3deg); }
+  38% { transform: translateX(-50%) rotate(11deg); }
+  58% { transform: translateX(-50%) rotate(2deg); }
+  78% { transform: translateX(-50%) rotate(7deg); }
+  100% { transform: translateX(-50%) rotate(5deg); }
+}
+@keyframes tag-wiggle {
+  0%, 100% { d: path("M54 0 C54 30 49 62 50 100"); }
+  16% { d: path("M54 0 C59 28 43 64 50 100"); }
+  34% { d: path("M54 0 C50 32 55 60 50 100"); }
+  54% { d: path("M54 0 C56 30 46 63 50 100"); }
+  74% { d: path("M54 0 C53 30 51 62 50 100"); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book:hover .tag-swing, .book:hover .tag, .book:hover .tag-thread path { animation: none; }
 }
 /* the bend where the cord comes over the head of the book catches the light */
 .tt-bend {
@@ -608,7 +644,7 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
   font-size: calc(var(--k) * 12px);
   line-height: 1;
   white-space: nowrap;
-  transform: translateZ(3px) translateX(-50%) rotate(5deg);
+  transform: translateX(-50%) rotate(5deg);
   transform-origin: 50% 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
@@ -1200,7 +1236,7 @@ body.plane-3d .obj-plane:hover { transform: none; }
 .rec-note:hover .rec-note-gap { transform: translate(7px, 7px); }
 .rec-note-ink {
   position: absolute;
-  inset: 15% 4% 7% 4%;
+  inset: 17% 8% 5% 8%;
   font-size: 21px;
   display: flex;
   flex-direction: column;
@@ -1284,3 +1320,7 @@ body.cam-moving .bay .spine { box-shadow: none; }
 .plate { pointer-events: none; }
 .plate-hit { position: absolute; inset: 30% 16% 26%; pointer-events: auto; }
 .scene.zooming .plate:not(.current) .plate-hit { pointer-events: none; }
+
+/* the smiley on the note, in the same dark pen ink */
+.rec-note-ink svg { width: 100%; height: 100%; display: block; }
+.rec-note-ink path { fill: none; stroke: #1b2230; stroke-width: 4.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
