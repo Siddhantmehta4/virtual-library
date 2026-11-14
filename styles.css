@@ -14,6 +14,8 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
+/* phones enlarge "small" text on their own (text autosizing), which blew the plate lettering up */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   background: linear-gradient(#3a3522 0 50%, #3b2820 50% 100%);
   color: var(--cream);
@@ -1377,3 +1379,9 @@ body.cam-moving .bay .spine { box-shadow: none; }
 .lamp-glow { display: none !important; }
 /* the sheet in the typewriter shouldn't outshine the dim arch */
 .obj-typewriter { --grade: brightness(0.92) contrast(1.08) saturate(0.95) sepia(0.06); }
+
+/* ---------- phones ---------- */
+/* above the case there's no wall to hover, so the title stays put instead of fading away */
+body.ready .wall-title.top, body.ready .wall-title.top.faded { opacity: 0.85; }
+/* zoomed in, the bay's own plate sits on its moulding; the header doesn't need a second one */
+.zoom-plate { display: none; }
