@@ -964,6 +964,8 @@ function addCard() {
   card.prepend(el("span", "rec-note-gap"));
   card.append(el("span", "rec-note-sheet"), ink, el("span", "rec-note-pin"));
   card.addEventListener("click", (e) => { e.stopPropagation(); hideCard(); if (state.planeEl) openRecForm(state.planeEl); });
+  card.addEventListener("pointerenter", () => { if (!state.zoom) labelFor(card, "Your Recommendations!"); });
+  card.addEventListener("pointerleave", hideCard);
   $("objects").append(card);
 
 }
@@ -1490,11 +1492,17 @@ function startPlane3D() {
 }
 
 // ---------- the guitar: one click, one riff ----------
-let riff = null;
-function playRiff(node) {
-  if (!riff) { riff = new Audio("assets/audio/guitar-riff.mp3"); riff.volume = 0.55; }
-  riff.currentTime = 0;
-  riff.play().catch(() => {});
+// each click picks a different riff from the last one; a click mid-riff cuts to the next
+const RIFFS = ["assets/audio/riff-eb-blues.mp3", "assets/audio/riff-jingle.mp3", "assets/audio/riff-g-blues.mp3"].map((src) => {
+  const a = new Audio(); a.preload = "none"; a.src = src; a.volume = 0.6; return a;
+});
+let lastRiff = -1;
+function playRiff() {
+  RIFFS.forEach((a) => { a.pause(); a.currentTime = 0; });
+  let i = Math.floor(Math.random() * RIFFS.length);
+  if (i === lastRiff) i = (i + 1 + Math.floor(Math.random() * (RIFFS.length - 1))) % RIFFS.length;
+  lastRiff = i;
+  RIFFS[i].play().catch(() => {});
 }
 
 // ---------- the framed photographs: lifted off the shelf into the middle of the screen ----------
