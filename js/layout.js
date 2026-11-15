@@ -81,7 +81,7 @@ export const TITLE = {
 export const OBJECTS = {
   // left arch: holder a little left of centre and forward, hourglass set further back and turned slightly
   glasses: { id: "glasses", x: 712, base: 495, sink: 8, w: 103, h: 133, zone: "arch-left" },
-  hourglass: { id: "hourglass", x: 866, base: 495, sink: 15, w: 69, h: 131, rot: 2, zone: "arch-left" },
+  hourglass: { id: "hourglass", img: "hourglass-lit", x: 866, base: 495, sink: 15, w: 69, h: 131, rot: 2, zone: "arch-left" },
   // centre arch: lamp a touch off-centre, as if pushed aside
   lamp: { id: "lamp", x: 1392, base: 495, sink: 10, w: 172, h: 204, zone: "lamp" },
   // right arch: the pen dropped beside the reading pile at a casual angle
@@ -97,7 +97,7 @@ export const OBJECTS = {
   sleeves: { id: "sleeves", img: "arch-sleeves", x: 2226, base: 495, sink: 3, w: 203, h: 140, zone: "arch-right" },
   pen: { id: "pen", img: "pen-flat", x: 2178, base: 495, sink: 5, w: 104, h: 28, rot: -5, zone: "arch-right" },
   // on the floor against the left wall: a Les Paul on its stand, its right edge catching the shelves' glow
-  guitar: { id: "guitar", img: "guitar-flame", x: 262, base: 1500, w: 246, h: 650, foot: 0.985, zone: "floor" },
+  guitar: { id: "guitar", img: "guitar-flame", x: 262, base: 1500, w: 227, h: 600, foot: 0.985, zone: "floor" },
   deck: { id: "deck", img: "deck-full", x: 576, base: 1512, w: 128, h: 102, foot: 0.97, squash: 0.62, reflect: true, zone: "floor" },
   plane: { id: "plane", x: 2275, base: 1484, w: 128, h: 46, foot: 0.98, squash: 0.85, reflect: true, zone: "floor" },
   plant: { id: "plant", bay: "Self-Help", inset: 66, w: 112, h: 120, zone: "shelf" },
