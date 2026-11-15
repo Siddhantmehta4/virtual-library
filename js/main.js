@@ -593,6 +593,15 @@ function setupScrolling() {
 
   $("zoomBack").addEventListener("click", () => closeZoom());
   $("curtain").addEventListener("click", () => closeZoom());
+  // zoomed in, a click on any empty part of the shelf steps back out too (not after a drag-scroll)
+  let down = null;
+  $("bays").addEventListener("pointerdown", (e) => { down = { x: e.clientX, y: e.clientY }; });
+  $("bays").addEventListener("click", (e) => {
+    if (!state.zoom || !e.target.closest(".bay.zoomed")) return;
+    if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+    if (e.target.closest(".bay-hit, .book, .stack, .lbook, .slab, .compartment, button, a, input")) return;
+    closeZoom();
+  });
 }
 
 // ---------- pull a book out ----------
