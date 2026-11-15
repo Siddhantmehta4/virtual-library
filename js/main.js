@@ -799,7 +799,7 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane", "frame1", "frame2"]);
+const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane", "frame1", "frame2", "guitar"]);
 // hover line only, no click
 const HOVER_ONLY = new Set(["pen"]);
 
@@ -852,7 +852,7 @@ function buildObjects() {
   layer.innerHTML = "";
   const reading = state.books.filter((b) => b.status === "reading");
 
-  layer.append(makeObject(OBJECTS.guitar, ""), makeObject(OBJECTS.sleeves, ""));
+  layer.append(makeObject(OBJECTS.guitar, "", (node) => playRiff(node)), makeObject(OBJECTS.sleeves, ""));
   for (const f of [OBJECTS.frame1, OBJECTS.frame2]) layer.append(makeObject(f, "", (node) => openPhoto(node, f.photo)));
   layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
@@ -1487,6 +1487,17 @@ function startPlane3D() {
       },
     });
   }).catch((e) => console.warn("3D plane unavailable, using the photo", e));
+}
+
+// ---------- the guitar: one click, one riff ----------
+let riff = null;
+function playRiff(node) {
+  if (!riff) { riff = new Audio("assets/audio/guitar-riff.mp3"); riff.volume = 0.55; riff.addEventListener("ended", () => node.classList.remove("ringing")); }
+  riff.currentTime = 0;
+  riff.play().catch(() => {});
+  node.classList.remove("ringing");
+  void node.offsetWidth;
+  node.classList.add("ringing");
 }
 
 // ---------- the framed photographs: lifted off the shelf into the middle of the screen ----------
