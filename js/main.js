@@ -1492,12 +1492,9 @@ function startPlane3D() {
 // ---------- the guitar: one click, one riff ----------
 let riff = null;
 function playRiff(node) {
-  if (!riff) { riff = new Audio("assets/audio/guitar-riff.mp3"); riff.volume = 0.55; riff.addEventListener("ended", () => node.classList.remove("ringing")); }
+  if (!riff) { riff = new Audio("assets/audio/guitar-riff.mp3"); riff.volume = 0.55; }
   riff.currentTime = 0;
   riff.play().catch(() => {});
-  node.classList.remove("ringing");
-  void node.offsetWidth;
-  node.classList.add("ringing");
 }
 
 // ---------- the framed photographs: lifted off the shelf into the middle of the screen ----------

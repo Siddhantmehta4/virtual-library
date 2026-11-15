@@ -1454,7 +1454,4 @@ body.ready .wall-title.top, body.ready .wall-title.top.faded { opacity: 0.85; }
 /* the guitar is set dressing: in the wall's dimmer light, a touch softer, so the books stay the sharpest, brightest thing in the room */
 .obj-guitar { --grade: brightness(0.82) contrast(0.97) saturate(0.81) sepia(0.04) blur(0.18px); }
 .obj-guitar .contact { display: none; } /* its floor shadow is part of the image */
-/* while the riff plays, the guitar hums on its stand */
-.obj-guitar.ringing img { animation: guitar-hum 0.09s linear infinite; transform-origin: 50% 92%; }
-@keyframes guitar-hum { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(0.6px) rotate(0.08deg); } }
-@media (prefers-reduced-motion: reduce) { .obj-guitar.ringing img { animation: none; } }
+
