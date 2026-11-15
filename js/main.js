@@ -1492,15 +1492,17 @@ function startPlane3D() {
 }
 
 // ---------- the guitar: one click, one riff ----------
-// each click picks a different riff from the last one; a click mid-riff cuts to the next
-const RIFFS = ["assets/audio/riff-eb-blues.mp3", "assets/audio/riff-jingle.mp3", "assets/audio/riff-g-blues.mp3"].map((src) => {
+// the first click always plays the G blues in full; after that, each click picks a different riff
+// from the last one, and a click mid-riff cuts to the next
+const RIFFS = ["assets/audio/riff-g-blues-full.mp3", "assets/audio/riff-eb-blues.mp3", "assets/audio/riff-jingle.mp3"].map((src) => {
   const a = new Audio(); a.preload = "none"; a.src = src; a.volume = 0.6; return a;
 });
 let lastRiff = -1;
 function playRiff() {
   RIFFS.forEach((a) => { a.pause(); a.currentTime = 0; });
   let i = Math.floor(Math.random() * RIFFS.length);
-  if (i === lastRiff) i = (i + 1 + Math.floor(Math.random() * (RIFFS.length - 1))) % RIFFS.length;
+  if (lastRiff < 0) i = 0;
+  else if (i === lastRiff) i = (i + 1 + Math.floor(Math.random() * (RIFFS.length - 1))) % RIFFS.length;
   lastRiff = i;
   RIFFS[i].play().catch(() => {});
 }
