@@ -802,9 +802,9 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane", "frame1", "frame2", "guitar", "sleeves"]);
+const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane", "frame1", "frame2", "guitar"]);
 // hover line only, no click
-const HOVER_ONLY = new Set(["pen"]);
+const HOVER_ONLY = new Set(["pen", "sleeves"]);
 
 function makeObject(spec, label, onClick) {
   const live = CLICKABLE.has(spec.id) || HOVER_ONLY.has(spec.id);
@@ -856,7 +856,7 @@ function buildObjects() {
   const reading = state.books.filter((b) => b.status === "reading");
 
   const spotify = () => window.open(SPOTIFY_URL, "_blank", "noopener");
-  layer.append(makeObject(OBJECTS.guitar, "Feeling bluesy?", () => playRiff()), makeObject(OBJECTS.sleeves, "I like big books and I cannot lie.. ", spotify));
+  layer.append(makeObject(OBJECTS.guitar, "Feeling bluesy?", () => playRiff()), makeObject(OBJECTS.sleeves, "I like big books and I cannot lie.. "));
   for (const f of [OBJECTS.frame1, OBJECTS.frame2]) layer.append(makeObject(f, "", (node) => openPhoto(node, f.photo)));
   layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
