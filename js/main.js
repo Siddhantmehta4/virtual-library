@@ -1,7 +1,7 @@
 import { loadLibrary, normalizeRec } from "./data.js";
 import { IMG, EYE, PERSPECTIVE, CASE, BAYS, BOOK_K, GENRE_ALIASES, OBJECTS, TITLE } from "./layout.js";
 import { ESTATE_URL, STORY_URL, SPOTIFY_URL, SUPABASE_URL, SUPABASE_KEY } from "./config.js";
-import { makeSpineCanvas, SPINE_FONT_LOADS } from "./spines.js";
+import { makeSpineCanvas, SPINE_FONT_LOADS, R as SPINE_R } from "./spines.js";
 
 const SHOW_OBJECTS = true;
 
@@ -81,7 +81,10 @@ function lyingBook(b, k) {
   const box = el("span", "lbook");
   box.style.width = `${len}px`;
   box.style.height = `${thick}px`;
-  box.append(makeSpineCanvas(b, true), el("span", "lbook-light"));
+  // painted at about twice the size it appears on screen in the room view (where the pile lives)
+  const zoom = parseFloat(getComputedStyle($("stage")).zoom) || 0.6;
+  const scale = (k * Math.max(zoom, 0.45) * (devicePixelRatio || 1) * 2) / SPINE_R;
+  box.append(makeSpineCanvas(b, true, scale), el("span", "lbook-light"));
   box._book = b;
   return box;
 }
@@ -799,7 +802,7 @@ function labelFor(anchor, text) {
 
 // Each object is a photographed cut-out (assets/obj), sized and placed in image pixels.
 // Only these objects respond for now; the rest are scenery.
-const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane", "frame1", "frame2", "guitar"]);
+const CLICKABLE = new Set(["glasses", "deck", "hourglass", "typewriter", "speaker", "plane", "frame1", "frame2", "guitar", "sleeves"]);
 // hover line only, no click
 const HOVER_ONLY = new Set(["pen"]);
 
@@ -852,16 +855,14 @@ function buildObjects() {
   layer.innerHTML = "";
   const reading = state.books.filter((b) => b.status === "reading");
 
-  layer.append(makeObject(OBJECTS.guitar, "", (node) => playRiff(node)), makeObject(OBJECTS.sleeves, ""));
+  const spotify = () => window.open(SPOTIFY_URL, "_blank", "noopener");
+  layer.append(makeObject(OBJECTS.guitar, "Feeling bluesy?", () => playRiff()), makeObject(OBJECTS.sleeves, "View my Spotify", spotify));
   for (const f of [OBJECTS.frame1, OBJECTS.frame2]) layer.append(makeObject(f, "", (node) => openPhoto(node, f.photo)));
   layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
-    else flashLabel(node, "Still being typed. Soon.");
+    else flashLabel(node, "Coming soon.");
   }));
-  layer.append(makeObject(OBJECTS.speaker, "I like big books and I cannot lie.. ", (node) => {
-    if (SPOTIFY_URL) window.open(SPOTIFY_URL, "_blank", "noopener");
-    else flashLabel(node, "The playlist is warming up.");
-  }));
+  layer.append(makeObject(OBJECTS.speaker, "View my Spotify", spotify));
   layer.append(makeObject(OBJECTS.glasses, "Put these on to search.", () => openReader()));
   layer.append(makeObject(OBJECTS.hourglass, "If I could save time in a bottle.. ", (node) => flipTime(node)));
   layer.append(makeObject(OBJECTS.deck, "Pick a card, any card.", (node) => {
@@ -1492,19 +1493,14 @@ function startPlane3D() {
 }
 
 // ---------- the guitar: one click, one riff ----------
-// the first click always plays the G blues in full; after that, each click picks a different riff
-// from the last one, and a click mid-riff cuts to the next
-const RIFFS = ["assets/audio/riff-g-blues-full.mp3", "assets/audio/riff-eb-blues.mp3", "assets/audio/riff-jingle.mp3"].map((src) => {
-  const a = new Audio(); a.preload = "none"; a.src = src; a.volume = 0.6; return a;
-});
-let lastRiff = -1;
+// one riff, the G blues, from the top on every click
+const riff = new Audio();
+riff.preload = "none";
+riff.src = "assets/audio/riff-g-blues-full.mp3";
+riff.volume = 0.6;
 function playRiff() {
-  RIFFS.forEach((a) => { a.pause(); a.currentTime = 0; });
-  let i = Math.floor(Math.random() * RIFFS.length);
-  if (lastRiff < 0) i = 0;
-  else if (i === lastRiff) i = (i + 1 + Math.floor(Math.random() * (RIFFS.length - 1))) % RIFFS.length;
-  lastRiff = i;
-  RIFFS[i].play().catch(() => {});
+  riff.currentTime = 0;
+  riff.play().catch(() => {});
 }
 
 // ---------- the framed photographs: lifted off the shelf into the middle of the screen ----------

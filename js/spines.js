@@ -5,7 +5,7 @@
 
 // render scale (canvas px per book px): enough that a zoomed shelf on a retina screen shows the
 // spine at (or above) its painted size, so lettering and cover art stay sharp
-const R = (globalThis.devicePixelRatio || 1) > 1.2 ? 3.4 : 2.2;
+export const R = (globalThis.devicePixelRatio || 1) > 1.2 ? 3.4 : 2.2;
 
 const FONTS = [
   { title: "600 {s}px Cinzel", caps: true, author: "500 {s}px 'EB Garamond'" },
@@ -112,14 +112,18 @@ function pump() {
 
 // lying = true gives the same spine turned on its side, painted straight into a horizontal
 // canvas (an exact 90° pixel turn) so it is as crisp as a standing one
-export function makeSpineCanvas(b, lying = false) {
+// scale < 1 makes the canvas smaller than the cached painting: it is then shrunk in steps with
+// high-quality smoothing, so a spine shown small (the overflow pile) stays sharp instead of the
+// browser sampling a far larger bitmap down in one go, which turns small lettering to mush
+export function makeSpineCanvas(b, lying = false, scale = 1) {
   const c = document.createElement("canvas");
   c.className = "spine-canvas";
   const sw = Math.max(1, Math.round(b.width * R)), sh = Math.max(1, Math.round(b.height * R));
-  c.width = lying ? sh : sw;
-  c.height = lying ? sw : sh;
+  const s = Math.min(1, scale);
+  c.width = Math.max(1, Math.round((lying ? sh : sw) * s));
+  c.height = Math.max(1, Math.round((lying ? sw : sh) * s));
   if (!live.has(b.id)) live.set(b.id, new Set());
-  const entry = { canvas: c, b, lying, sw, sh };
+  const entry = { canvas: c, b, lying, sw, sh, s };
   live.get(b.id).add(entry);
   const hit = cache.get(b.id);
   if (hit && hit.canvas.width === sw && hit.canvas.height === sh) {
@@ -134,12 +138,25 @@ export function makeSpineCanvas(b, lying = false) {
   return c;
 }
 
+function stepDown(src, w, h) {
+  let cur = src;
+  while (cur.width / 2 > w * 1.05) {
+    const t = document.createElement("canvas");
+    t.width = Math.max(w, Math.round(cur.width / 2)); t.height = Math.max(h, Math.round(cur.height / 2));
+    const tg = t.getContext("2d"); tg.imageSmoothingQuality = "high"; tg.drawImage(cur, 0, 0, t.width, t.height);
+    cur = t;
+  }
+  return cur;
+}
 function blit(entry, src) {
-  const g = entry.canvas.getContext("2d");
+  const c = entry.canvas, g = c.getContext("2d");
+  const s = entry.s || 1;
+  if (s < 1) src = stepDown(src, Math.round(src.width * s), Math.round(src.height * s));
   g.save();
-  g.clearRect(0, 0, entry.canvas.width, entry.canvas.height);
-  if (entry.lying) { g.translate(0, entry.canvas.height); g.rotate(-Math.PI / 2); }
-  g.drawImage(src, 0, 0);
+  g.imageSmoothingQuality = "high";
+  g.clearRect(0, 0, c.width, c.height);
+  if (entry.lying) { g.translate(0, c.height); g.rotate(-Math.PI / 2); g.drawImage(src, 0, 0, c.height, c.width); }
+  else g.drawImage(src, 0, 0, c.width, c.height);
   g.restore();
 }
 
