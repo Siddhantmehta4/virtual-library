@@ -110,8 +110,20 @@ function bookEl(b, bay, index) {
     front.append(el("span", "front-shade"));
     body.insertBefore(front, body.children[1]);
   };
-  btn.addEventListener("pointerenter", addFront);
-  btn.addEventListener("focus", addFront);
+  // the cover swings out to the right as the book is pulled: near the end of a shelf that would run
+  // past the edge and get cut off, so the book slides left just enough to show the whole cover
+  const makeRoom = () => {
+    addFront();
+    const clip = btn.closest(".bay-scroll");
+    if (!clip) return;
+    const r = btn.getBoundingClientRect(), c = clip.getBoundingClientRect();
+    const scale = r.width / (btn.offsetWidth || 1);
+    const coverW = Math.round(b.height * COVER_RATIO * BOOK_K) * scale;
+    const need = r.right + coverW * 0.95 + 10 * scale - c.right;
+    btn.style.setProperty("--nx", need > 0 ? `${-(need / scale).toFixed(1)}px` : "0px");
+  };
+  btn.addEventListener("pointerenter", makeRoom);
+  btn.addEventListener("focus", makeRoom);
   if (b.status === "reading") body.append(el("span", "ribbon"));
   if (b.kind === "rec" && b.recommender) {
     // a string comes up out of the pages, bends over the head of the book and hangs down the spine
