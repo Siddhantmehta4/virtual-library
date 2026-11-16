@@ -312,7 +312,7 @@ function fillBay(bay, all) {
     });
     stack.addEventListener("click", (e) => { e.stopPropagation(); openZoom(bay); });
     if (canHover) {
-      stack.addEventListener("pointerenter", (e) => { e.stopPropagation(); labelFor(stack.querySelector(".lbook") || stack, `+${hidden} more on this shelf`); });
+      stack.addEventListener("pointerenter", (e) => { e.stopPropagation(); labelFor(stack.querySelector(".lbook") || stack, `+${hidden} more on this shelf`, true); });
       stack.addEventListener("pointerleave", hideCard);
     }
     row.append(stack);
@@ -838,8 +838,8 @@ function placeTitle() {
 function setupTitle() { state.titleFadeAt = performance.now() + 3000; } // the plane waits a beat before its entrance
 
 // ---------- pixel objects ----------
-function labelFor(anchor, text) {
-  fillCard("label", [["hc-line", text]]);
+function labelFor(anchor, text, plain = false) {
+  fillCard(plain ? "label plain" : "label", [["hc-line", text]]);
   placeCard(anchor);
 }
 
