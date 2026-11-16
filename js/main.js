@@ -201,7 +201,6 @@ function showBayCard(anchor, bay) {
   fillCard("bay-card", [["hc-title", bay.genre], ["hc-facts", `${n} ${n === 1 ? "book" : "books"}`]]);
   placeCard(bay.plateEl || anchor);
 }
-// Once the plane has landed, its card stays up: whenever no other card is showing, it returns.
 const PLANE_LINE = "Click to send me a book.";
 function planeCardAllowed() {
   return state.planeResting && state.planeEl && !state.zoom && !state.detail && !state.photo &&
@@ -209,10 +208,7 @@ function planeCardAllowed() {
 }
 function hideCard() {
   clearTimeout(cardTimer);
-  cardTimer = setTimeout(() => {
-    if (planeCardAllowed()) labelFor(state.planeEl, PLANE_LINE);
-    else $("hoverCard").classList.remove("on");
-  }, 60);
+  cardTimer = setTimeout(() => $("hoverCard").classList.remove("on"), 60);
 }
 
 // ---------- brass plates ----------
@@ -1527,10 +1523,13 @@ function startPlane3D() {
         const r = n.getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: Math.max(r.width, r.height) / 2 };
       },
-      // a second after it touches down, its card appears and stays
+      // a second after it touches down, its card shows for three seconds
       onLand: () => setTimeout(() => {
         state.planeResting = true;
-        if (planeCardAllowed() && !$("hoverCard").classList.contains("on")) labelFor(state.planeEl, PLANE_LINE);
+        if (!planeCardAllowed() || $("hoverCard").classList.contains("on")) return;
+        const p = state.planeEl;
+        labelFor(p, PLANE_LINE);
+        setTimeout(() => { if (!p.matches(":hover")) hideCard(); }, 3000);
       }, 1000),
       onReady: (api) => {
         const { flyOnce, arriveNow } = api;
@@ -1656,7 +1655,6 @@ addEventListener("resize", () => {
       syncPerspective(state.zoom);
       applyCamera(zoomTransform(state.zoom));
     } else { placeTitle(); applyCamera(overviewTransform(), true); }
-    if (planeCardAllowed()) setTimeout(() => labelFor(state.planeEl, PLANE_LINE), 50);
   }, 120);
 });
 
