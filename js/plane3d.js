@@ -6,7 +6,7 @@ import * as THREE from "./vendor/three.module.min.js";
 const FOV = 30;
 const FLOOR_TILT = 0.36; // radians: how steeply the room camera looks down at the floor
 
-export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
+export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady, onLand }) {
   const canvas = document.createElement("canvas");
   canvas.className = "plane3d";
   canvas.setAttribute("aria-hidden", "true");
@@ -289,7 +289,7 @@ export function initPlane3D({ anchor, isHidden, isDark, tie, note, onReady }) {
       plane.quaternion.copy(tmpQ);
       plane.position.copy(flight.abs ? p : base.clone().add(p));
       if (flight.abs) plane.scale.setScalar(size * (0.78 + 0.22 * THREE.MathUtils.smoothstep(t, 0.55, 1)));
-      if (t >= 1) { flight = null; arrived = true; }
+      if (t >= 1) { flight = null; arrived = true; onLand && setTimeout(onLand, 0); }
     } else {
       plane.quaternion.copy(restQ);
       const bob = lift * size * 0.12;

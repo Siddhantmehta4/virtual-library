@@ -247,6 +247,17 @@ function buildRoom() {
     box.prepend(back);
     bay.el = box;
     bay.scroller = scroller;
+    // soft glass arrows on the ends of a shelf that scrolls (only shown while zoomed in)
+    for (const dir of [-1, 1]) {
+      const a = el("button", `shelf-arrow ${dir < 0 ? "prev" : "next"}`, dir < 0 ? "‹" : "›");
+      a.type = "button";
+      a.setAttribute("aria-label", dir < 0 ? "Scroll shelf left" : "Scroll shelf right");
+      a.addEventListener("click", (e) => {
+        e.stopPropagation();
+        scroller.scrollBy({ left: dir * scroller.clientWidth * 0.6, behavior: reduceMotion ? "auto" : "smooth" });
+      });
+      box.append(a);
+    }
     bay.row = row;
     layer.append(box);
 
@@ -542,6 +553,16 @@ function openZoom(bay) {
   $("zoomCount").textContent = `${n} ${n === 1 ? "book" : "books"}`;
   $("zoomHead").classList.add("on");
   setTimeout(() => $("zoomBack").focus({ preventScroll: true }), 50);
+  // a shelf with more than fits gives a little slide as it opens, so it's clear the row moves
+  const s = bay.scroller;
+  if (!reduceMotion && s.scrollWidth - s.clientWidth > 8) {
+    setTimeout(() => {
+      if (state.zoom !== bay || s.scrollLeft > 2) return;
+      const row = s.querySelector(".bay-row");
+      row.classList.remove("nudge"); void row.offsetWidth; row.classList.add("nudge");
+      row.addEventListener("animationend", () => row.classList.remove("nudge"), { once: true });
+    }, 1100);
+  }
 }
 
 function closeZoom(quick) {
@@ -802,7 +823,7 @@ function placeTitle() {
     const right = Math.min(IMG.w, (innerWidth - o.tx) / o.s);
     box.x = CASE.x1 + 16;
     box.w = Math.max(120, right - box.x - 16);
-    t.style.setProperty("--title-size", `${Math.min(108, box.w / 4.3)}px`);
+    t.style.setProperty("--title-size", `${Math.min(116, box.w / 4.0)}px`);
   }
   Object.assign(t.style, { left: `${box.x}px`, width: `${box.w}px`, top: `${box.y}px`, height: box.h ? `${box.h}px` : "" });
   const z = box.zone;
@@ -1497,6 +1518,14 @@ function startPlane3D() {
         if (!n) return null;
         const r = n.getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: Math.max(r.width, r.height) / 2 };
+      },
+      // once it touches down, it says what it's for, for a few seconds
+      onLand: () => {
+        const p = state.planeEl;
+        if (!p || state.zoom || state.detail || $("recForm").classList.contains("on")) return;
+        labelFor(p, "Know a book I’d love? Click to recommend.");
+        clearTimeout(state.planeHint);
+        state.planeHint = setTimeout(() => { if (!p.matches(":hover")) hideCard(); }, 3000);
       },
       onReady: (api) => {
         const { flyOnce, arriveNow } = api;
