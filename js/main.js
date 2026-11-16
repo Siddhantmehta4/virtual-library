@@ -201,9 +201,18 @@ function showBayCard(anchor, bay) {
   fillCard("bay-card", [["hc-title", bay.genre], ["hc-facts", `${n} ${n === 1 ? "book" : "books"}`]]);
   placeCard(bay.plateEl || anchor);
 }
+// Once the plane has landed, its card stays up: whenever no other card is showing, it returns.
+const PLANE_LINE = "Click to send me a book.";
+function planeCardAllowed() {
+  return state.planeResting && state.planeEl && !state.zoom && !state.detail && !state.photo &&
+    !["recForm", "reader", "note"].some((id) => $(id)?.classList.contains("on"));
+}
 function hideCard() {
   clearTimeout(cardTimer);
-  cardTimer = setTimeout(() => $("hoverCard").classList.remove("on"), 60);
+  cardTimer = setTimeout(() => {
+    if (planeCardAllowed()) labelFor(state.planeEl, PLANE_LINE);
+    else $("hoverCard").classList.remove("on");
+  }, 60);
 }
 
 // ---------- brass plates ----------
@@ -909,7 +918,7 @@ function buildObjects() {
     const i = Math.floor(Math.random() * shelved.length);
     openDetail(node, shelved[i], shelved, i, true);
   }));
-  state.planeEl = makeObject(OBJECTS.plane, "Click to send me a book.", (node) => openRecForm(node));
+  state.planeEl = makeObject(OBJECTS.plane, PLANE_LINE, (node) => openRecForm(node));
   layer.append(state.planeEl);
   addPlant();
 }
@@ -1518,14 +1527,11 @@ function startPlane3D() {
         const r = n.getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: Math.max(r.width, r.height) / 2 };
       },
-      // once it touches down, it says what it's for, for a few seconds
+      // a second after it touches down, its card appears and stays
       onLand: () => setTimeout(() => {
-        const p = state.planeEl;
-        if (!p || state.zoom || state.detail || $("recForm").classList.contains("on")) return;
-        labelFor(p, "Know a book I’d love? Click to recommend.");
-        clearTimeout(state.planeHint);
-        state.planeHint = setTimeout(() => { if (!p.matches(":hover")) hideCard(); }, 3000);
-      }, 750),
+        state.planeResting = true;
+        if (planeCardAllowed() && !$("hoverCard").classList.contains("on")) labelFor(state.planeEl, PLANE_LINE);
+      }, 1000),
       onReady: (api) => {
         const { flyOnce, arriveNow } = api;
         state.plane3d = api;
@@ -1539,10 +1545,10 @@ function startPlane3D() {
 }
 
 // ---------- the guitar: one click, one riff ----------
-// one riff, the G blues, from the top on every click
+// one track, a lonesome western guitar, from the top on every click
 const riff = new Audio();
 riff.preload = "none";
-riff.src = "assets/audio/riff-g-blues-full.mp3";
+riff.src = "assets/audio/lonesome-rider.mp3";
 riff.volume = 0.6;
 function playRiff() {
   riff.currentTime = 0;
@@ -1650,6 +1656,7 @@ addEventListener("resize", () => {
       syncPerspective(state.zoom);
       applyCamera(zoomTransform(state.zoom));
     } else { placeTitle(); applyCamera(overviewTransform(), true); }
+    if (planeCardAllowed()) setTimeout(() => labelFor(state.planeEl, PLANE_LINE), 50);
   }, 120);
 });
 

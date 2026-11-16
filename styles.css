@@ -105,8 +105,17 @@ body.ready .wall-title { opacity: 0.82; }
   color: #f4efe4;
   text-shadow: 0 6px 16px rgba(20, 14, 6, 0.4);
 }
-.wall-title.side .volumes { margin: 40px 0 0; font-size: calc(var(--title-size, 108px) * 0.28); letter-spacing: 0.24em; }
-.wall-title.top .volumes { margin: 28px 0 0; font-size: 42px; }
+.wall-title.side .volumes {
+  align-self: center;
+  margin: 70px 0 0;
+  padding: 0 0 10px 0.24em; /* balances the letter-spacing after the last letter, so the line is centred */
+  font-size: calc(var(--title-size, 108px) * 0.33);
+  letter-spacing: 0.24em;
+  color: #fffaf0;
+  /* a fine underline, a little brighter than the wall */
+  border-bottom: 2px solid rgba(255, 250, 240, 0.7);
+}
+.wall-title.top .volumes { display: inline-block; margin: 40px 0 0; padding-bottom: 8px; font-size: 48px; border-bottom: 2px solid rgba(234, 220, 184, 0.7); }
 
 /* ---------- objects (photographed cut-outs) ---------- */
 .objects { position: absolute; inset: 0; pointer-events: none; }
