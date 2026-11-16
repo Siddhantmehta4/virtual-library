@@ -148,9 +148,71 @@ function stepDown(src, w, h) {
   }
   return cur;
 }
+// A book lying in the overflow pile is only ~20 screen pixels thick, too thin for the standing
+// spine's lettering to survive being shrunk. So it is lettered afresh at its real pixel size:
+// the painted spine underneath for colour and texture, then the title set crisp on top.
+function paintLying(entry, src) {
+  const c = entry.canvas, g = c.getContext("2d");
+  const L = c.width, T = c.height, b = entry.b;
+  const small = stepDown(src, T, L);
+  g.save();
+  g.imageSmoothingQuality = "high";
+  g.clearRect(0, 0, L, T);
+  g.translate(0, T); g.rotate(-Math.PI / 2); g.drawImage(small, 0, 0, T, L);
+  g.restore();
+  // the spine's own average colour, laid over the art so the lettering has a clean ground
+  const px = g.getImageData(0, 0, L, T).data;
+  let r = 0, gg = 0, bb = 0;
+  for (let i = 0; i < px.length; i += 4) { r += px[i]; gg += px[i + 1]; bb += px[i + 2]; }
+  const n = px.length / 4, tone = [r / n, gg / n, bb / n];
+  g.fillStyle = css(tone, 0.8);
+  g.fillRect(0, 0, L, T);
+  const dark = lum(tone) < 0.52;
+  const ink = dark ? "#f8f2e6" : "#1c1610";
+  const font = FONTS[(hash(b.id) >>> 1) % FONTS.length];
+  const title = cleanTitle(b.title);
+  const fit = (tpl, size, max, caps) => {
+    let s = size;
+    const set = () => { g.font = tpl.replace("{s}", s.toFixed(1)); g.letterSpacing = caps ? `${(s * 0.05).toFixed(1)}px` : "0px"; };
+    set();
+    const txt = caps ? title.toUpperCase() : title;
+    const w = g.measureText(txt).width;
+    if (w > max) { s *= max / w; set(); }
+    return txt;
+  };
+  g.textBaseline = "middle";
+  g.fillStyle = ink;
+  // the author's surname sits at the right end; the title gets whatever room is left
+  let author = String(b.author || "").split(/\s+/).pop();
+  if (font.authorCaps && author) author = author.toUpperCase();
+  let aw = 0;
+  if (author && L > 60) {
+    g.font = font.author.replace("{s}", (T * 0.38).toFixed(1)); g.letterSpacing = "0px";
+    aw = g.measureText(author).width;
+    if (aw > L * 0.3) author = "", aw = 0;
+  } else author = "";
+  const titleTxt = fit(font.title, T * 0.56, L * 0.88 - aw - (aw ? L * 0.05 : 0), font.caps);
+  g.textAlign = "left";
+  g.fillText(titleTxt, Math.round(L * 0.06), Math.round(T * 0.54));
+  if (author) {
+    g.font = font.author.replace("{s}", (T * 0.38).toFixed(1));
+    g.letterSpacing = "0px";
+    g.globalAlpha = 0.85;
+    g.textAlign = "right";
+    g.fillText(author, Math.round(L * 0.96), Math.round(T * 0.55));
+    g.globalAlpha = 1;
+  }
+  // rounded spine: light along the top edge, shade underneath
+  const sh = g.createLinearGradient(0, 0, 0, T);
+  sh.addColorStop(0, "rgba(255,240,215,0.22)"); sh.addColorStop(0.25, "rgba(255,240,215,0)");
+  sh.addColorStop(0.7, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,0.35)");
+  g.fillStyle = sh; g.fillRect(0, 0, L, T);
+}
+
 function blit(entry, src) {
   const c = entry.canvas, g = c.getContext("2d");
   const s = entry.s || 1;
+  if (entry.lying && s < 1) return paintLying(entry, src);
   if (s < 1) src = stepDown(src, Math.round(src.width * s), Math.round(src.height * s));
   g.save();
   g.imageSmoothingQuality = "high";

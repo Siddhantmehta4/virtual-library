@@ -83,7 +83,7 @@ function lyingBook(b, k) {
   box.style.height = `${thick}px`;
   // painted at about twice the size it appears on screen in the room view (where the pile lives)
   const zoom = parseFloat(getComputedStyle($("stage")).zoom) || 0.6;
-  const scale = (k * Math.max(zoom, 0.45) * (devicePixelRatio || 1) * 2) / SPINE_R;
+  const scale = (k * Math.max(zoom, 0.45) * (devicePixelRatio || 1) * 1.25) / SPINE_R;
   box.append(makeSpineCanvas(b, true, scale), el("span", "lbook-light"));
   box._book = b;
   return box;
@@ -871,7 +871,7 @@ function buildObjects() {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
     else flashLabel(node, "Coming soon.");
   }));
-  layer.append(makeObject(OBJECTS.speaker, "View my Spotify", spotify));
+  layer.append(makeObject(OBJECTS.speaker, "Follow me on Spotify", spotify));
   layer.append(makeObject(OBJECTS.glasses, "Put these on to search.", () => openReader()));
   layer.append(makeObject(OBJECTS.hourglass, "If I could save time in a bottle.. ", (node) => flipTime(node)));
   layer.append(makeObject(OBJECTS.deck, "Pick a card, any card.", (node) => {
