@@ -653,13 +653,21 @@ function layoutTarget(rectH) {
 }
 
 function openDetail(btn, b, list, index, keepSource = false) {
-  const rect = btn.getBoundingClientRect();
+  let rect = btn.getBoundingClientRect();
+  // picked from a list (the search page) there's no book on a shelf to fly from: the book appears
+  // where it will rest, spine toward you, and turns to show its cover as it fades in
+  const fromList = btn.classList.contains("reader-row");
+  if (fromList) {
+    const h = layoutTarget(1).coverH, w = h * (b.width / b.height), t0 = layoutTarget(h);
+    rect = { left: t0.x - w, right: t0.x, top: t0.y - h / 2, width: w, height: h };
+  }
   const fly = $("fly");
   fly.innerHTML = "";
-  fly.className = "fly";
+  fly.className = "fly" + (fromList ? " fade" : "");
   fly.style.transition = "none";
   Object.assign(fly.style, {
-    left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, height: `${rect.height}px`, transform: "none",
+    left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, height: `${rect.height}px`,
+    transform: fromList ? "translateY(14px) rotateY(-12deg)" : "none",
   });
   applyBookVars(fly, b, rect.height / b.height);
   fly.append(spineFaces(b), coverFace(b, rect.height * COVER_RATIO));
@@ -677,6 +685,7 @@ function openDetail(btn, b, list, index, keepSource = false) {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     fly.style.transition = "";
     fly.style.transform = final;
+    fly.classList.remove("fade");
     detail.classList.add("out");
   }));
 }
