@@ -899,7 +899,7 @@ function buildObjects() {
   const reading = state.books.filter((b) => b.status === "reading");
 
   const spotify = () => window.open(SPOTIFY_URL, "_blank", "noopener");
-  layer.append(makeObject(OBJECTS.guitar, "Feeling bluesy?", () => playRiff()), makeObject(OBJECTS.sleeves, "I like big books and I cannot lie.. "));
+  layer.append(makeObject(OBJECTS.guitar, "Howdy, partner. Pull up a saddle.", () => playRiff()), makeObject(OBJECTS.sleeves, "I like big books and I cannot lie.. "));
   for (const f of [OBJECTS.frame1, OBJECTS.frame2]) layer.append(makeObject(f, "", (node) => openPhoto(node, f.photo)));
   layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");

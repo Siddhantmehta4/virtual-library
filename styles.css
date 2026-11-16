@@ -292,8 +292,8 @@ body.ready .help:not(.seen)::after { animation: help-ring 2.4s ease-out 2s 3; }
 .help-note p { margin: 0; }
 .hn-title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 24px; color: #fbf4e6; }
 .hn-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 11px; }
-.hn-list li { font-family: "Karla", sans-serif; font-size: 14.5px; line-height: 1.45; color: rgba(243, 234, 217, 0.88); padding-left: 14px; border-left: 1px solid rgba(255, 238, 210, 0.3); }
-.hn-list span { display: block; font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(243, 234, 217, 0.6); margin-bottom: 2px; }
+.hn-list li { font-family: "Karla", sans-serif; font-size: 14.5px; line-height: 1.45; color: rgba(243, 234, 217, 0.9); padding-left: 14px; border-left: 1px solid rgba(230, 201, 146, 0.45); }
+.hn-list span { display: block; font-family: "Karla", sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #e6c992; margin-bottom: 4px; }
 .hn-foot { margin-top: 14px !important; padding-top: 12px; border-top: 1px solid rgba(255, 238, 210, 0.1); font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 17px; color: rgba(243, 234, 217, 0.7); }
 .scene.zooming ~ .help { opacity: 0; pointer-events: none; }
 @media (max-width: 640px) { .hn-list li { font-size: 14px; } }
