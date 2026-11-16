@@ -899,7 +899,7 @@ function buildObjects() {
   const reading = state.books.filter((b) => b.status === "reading");
 
   const spotify = () => window.open(SPOTIFY_URL, "_blank", "noopener");
-  layer.append(makeObject(OBJECTS.guitar, "Howdy, partner. Pull up a saddle.", () => playRiff()), makeObject(OBJECTS.sleeves, "I like big books and I cannot lie.. "));
+  layer.append(makeObject(OBJECTS.guitar, "Howdy, partner.", () => playRiff()), makeObject(OBJECTS.sleeves, "I like big books and I cannot lie.. "));
   for (const f of [OBJECTS.frame1, OBJECTS.frame2]) layer.append(makeObject(f, "", (node) => openPhoto(node, f.photo)));
   layer.append(makeObject(OBJECTS.typewriter, "Read my short story.", (node) => {
     if (STORY_URL) window.open(STORY_URL, "_blank", "noopener");
@@ -1529,6 +1529,7 @@ function startPlane3D() {
         if (!planeCardAllowed() || $("hoverCard").classList.contains("on")) return;
         const p = state.planeEl;
         labelFor(p, PLANE_LINE);
+        $("hoverCard").classList.add("gold"); // set like the gold section headings
         setTimeout(() => { if (!p.matches(":hover")) hideCard(); }, 3000);
       }, 1000),
       onReady: (api) => {
