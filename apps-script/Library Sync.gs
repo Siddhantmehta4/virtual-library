@@ -74,7 +74,7 @@ function syncLibrary() {
         if (libCols[f] === undefined) return;
         let v = row[libCols[f]];
         if (v instanceof Date) v = Utilities.formatDate(v, tz, 'yyyy-MM-dd');
-        book[f] = v === null ? '' : v;
+        book[f] = v === null ? '' : (typeof v === 'number' && (f === 'title' || f === 'author' || f === 'isbn')) ? String(v) : v;
       });
       books.push(book);
     }

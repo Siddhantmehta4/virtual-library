@@ -40,8 +40,9 @@ const clean = (v: unknown) => {
   const s = String(v ?? "").trim();
   return s === "" ? null : s;
 };
-const norm = (s: string) =>
-  (s ?? "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
+// titles like 1984 arrive from the sheet as numbers, so everything is turned into text first
+const norm = (s: unknown) =>
+  String(s ?? "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
 const keyOf = (r: any) => `${norm(r.title)}|${norm(r.author)}`;
 const cleanIsbn = (v: unknown) => clean(v)?.replace(/[^0-9Xx]/g, "") || null;
 
