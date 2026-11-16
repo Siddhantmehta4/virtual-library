@@ -809,21 +809,8 @@ function placeTitle() {
   Object.assign($("wallZone").style, { left: `${z.x}px`, top: `${z.y}px`, width: `${z.w}px`, height: `${z.h}px` });
 }
 
-// The title shows for a few seconds, then fades; it returns while the wall is hovered (or tapped).
-function setupTitle() {
-  const t = $("wallTitle"), zone = $("wallZone");
-  state.titleFadeAt = performance.now() + 5000;
-  setTimeout(() => t.classList.add("faded"), 5000);
-  zone.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") t.classList.add("peek"); });
-  zone.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") t.classList.remove("peek"); });
-  let tapTimer = 0;
-  zone.addEventListener("click", () => {
-    if (canHover) return;
-    t.classList.add("peek");
-    clearTimeout(tapTimer);
-    tapTimer = setTimeout(() => t.classList.remove("peek"), 3000);
-  });
-}
+// The title stays on the wall the whole time.
+function setupTitle() { state.titleFadeAt = performance.now() + 3000; } // the plane waits a beat before its entrance
 
 // ---------- pixel objects ----------
 function labelFor(anchor, text) {

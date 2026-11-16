@@ -80,9 +80,7 @@ body.ready .bays { opacity: 1; }
   opacity: 0;
   transition: opacity 1.4s ease;
 }
-body.ready .wall-title { opacity: 0.6; }
-body.ready .wall-title.faded { opacity: 0; transition-duration: 1.6s; }
-body.ready .wall-title.faded.peek { opacity: 0.6; transition-duration: 0.5s; }
+body.ready .wall-title { opacity: 0.82; }
 .wall-zone { position: absolute; }
 .scene.zooming .wall-zone { pointer-events: none; }
 .welcome {
@@ -1421,7 +1419,7 @@ body.cam-moving .bay .spine { box-shadow: none; }
 
 /* ---------- phones ---------- */
 /* above the case there's no wall to hover, so the title stays put instead of fading away */
-body.ready .wall-title.top, body.ready .wall-title.top.faded { opacity: 0.85; }
+body.ready .wall-title.top { opacity: 0.9; }
 /* zoomed in, the bay's own plate sits on its moulding; the header doesn't need a second one */
 .zoom-plate { display: none; }
 /* the record player and sleeves were lit warmer than this arch: settle them into its light */
