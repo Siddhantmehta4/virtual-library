@@ -1038,7 +1038,21 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 }
 .reader-search::placeholder { color: rgba(243, 234, 217, 0.45); }
 .reader-search:focus { outline: none; border-color: rgba(255, 238, 210, 0.35); background: rgba(255, 240, 215, 0.09); }
-.reader-group { margin: 22px 0 4px; font-family: "Space Mono", monospace; font-size: 11.5px; letter-spacing: 0.04em; color: rgba(243, 234, 217, 0.55); }
+/* the heading for each group (a genre, a rating, a letter): clearly a section, not another row */
+.reader-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 0 6px;
+  font-family: "Karla", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #e6c992;
+}
+.reader-group::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(230, 201, 146, 0.45), rgba(230, 201, 146, 0)); }
+.reader-body > .reader-group:first-child { margin-top: 18px; }
 .reader-row { display: flex; width: 100%; align-items: baseline; gap: 14px; padding: 8px 0; border: 0; border-bottom: 1px solid rgba(255, 238, 210, 0.07); background: none; text-align: left; cursor: pointer; color: inherit; }
 .reader-row:hover .rr-title { color: #fff; }
 .reader-row:hover { background: linear-gradient(90deg, rgba(255, 240, 215, 0.05), rgba(255, 240, 215, 0)); }
