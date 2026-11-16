@@ -209,8 +209,10 @@ function hideCard() {
 // ---------- brass plates ----------
 // The plate is a real photo; the name is set in its band, shrunk to fit long names.
 function engrave(text, room) {
-  const span = el("span", "engraved", text);
-  const fs = Math.min(12, room / (text.length * 0.78 + 1));
+  // long names (Art & Creativity) are set a touch tighter instead of much smaller
+  const long = text.length > 10;
+  const span = el("span", long ? "engraved long" : "engraved", text);
+  const fs = Math.min(12, room / (text.length * (long ? 0.7 : 0.78) + 1));
   span.style.fontSize = `${fs}px`;
   return span;
 }
@@ -247,15 +249,10 @@ function buildRoom() {
     box.prepend(back);
     bay.el = box;
     bay.scroller = scroller;
-    // soft glass arrows on the ends of a shelf that scrolls (only shown while zoomed in)
+    // soft glass arrows on the ends of a shelf that scrolls: only a hint, not buttons
     for (const dir of [-1, 1]) {
-      const a = el("button", `shelf-arrow ${dir < 0 ? "prev" : "next"}`, dir < 0 ? "‹" : "›");
-      a.type = "button";
-      a.setAttribute("aria-label", dir < 0 ? "Scroll shelf left" : "Scroll shelf right");
-      a.addEventListener("click", (e) => {
-        e.stopPropagation();
-        scroller.scrollBy({ left: dir * scroller.clientWidth * 0.6, behavior: reduceMotion ? "auto" : "smooth" });
-      });
+      const a = el("span", `shelf-arrow ${dir < 0 ? "prev" : "next"}`, dir < 0 ? "‹" : "›");
+      a.setAttribute("aria-hidden", "true");
       box.append(a);
     }
     bay.row = row;
@@ -824,6 +821,9 @@ function placeTitle() {
     box.x = CASE.x1 + 16;
     box.w = Math.max(120, right - box.x - 16);
     t.style.setProperty("--title-size", `${Math.min(116, box.w / 4.0)}px`);
+    // the stacked title sits exactly in the middle of the screen, top to bottom
+    box.y = (innerHeight / 2 - o.ty) / o.s;
+    box.h = 0;
   }
   Object.assign(t.style, { left: `${box.x}px`, width: `${box.w}px`, top: `${box.y}px`, height: box.h ? `${box.h}px` : "" });
   const z = box.zone;
