@@ -11,7 +11,7 @@ let db: any = null;
 const SYNC_TOKEN = Deno.env.get("SYNC_TOKEN") ?? "";
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const AI_MODEL = "claude-haiku-5-5";
-const MAX_ENRICH = 8; // new books processed per run; the rest wait for the next sync
+const MAX_ENRICH = 6; // new books processed per run; the rest wait for the next sync
 const UA = { "User-Agent": "VirtualLibrary/1.0 (personal bookshelf site)" };
 // The bookcase has one bay per genre. Only these are allowed.
 const GENRES = [
@@ -193,7 +193,7 @@ Reply with ONLY a JSON array and no other text, like:
         max_tokens: 3000,
         messages: [{ role: "user", content: prompt }],
       }),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(30000),
     });
     if (!r.ok) return out;
     const j = await r.json();
@@ -260,6 +260,7 @@ Deno.serve(async (req) => {
 });
 
 async function handle(req: Request) {
+  const started = Date.now();
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   if (!SYNC_TOKEN) return json({ error: "SYNC_TOKEN secret is not set in Supabase" }, 500);
   if (req.headers.get("x-sync-token") !== SYNC_TOKEN) {
@@ -316,13 +317,22 @@ async function handle(req: Request) {
   const keep: any[] = [];
   const fresh: any[] = [];
   let budget = MAX_ENRICH;
-  for (const b of books) {
+  // brand-new books go first; old books only re-checking a missing cover wait their turn, so
+  // new rows at the bottom of the sheet are never starved by retries further up
+  const order = [...books].sort((a, b) => Number(ex.has(a.key)) - Number(ex.has(b.key)));
+  for (const b of order) {
     const status = results.get(b.row) ?? {};
     results.set(b.row, status);
     const base = userFields(b);
     const shelfNote = !base.genre ? "⚠ pick a genre from the list" : base.status === "unfinished" ? "✓ in the secret shelf" : "✓ on shelf";
     if (!needsEnrich(b, ex.get(b.key))) { keep.push(base); status.sync_status = shelfNote; continue; }
-    if (budget <= 0) { status.sync_status = "⏳ queued for next sync"; continue; }
+    // stay well inside the function's time limit: if a slow run times out, nothing gets saved at all
+    if (budget <= 0 || Date.now() - started > 70_000) {
+      status.sync_status = "⏳ queued for next sync";
+      const e = ex.get(b.key);
+      if (e?.spine) keep.push(base); // already on the shelf: keep its details current meanwhile
+      continue;
+    }
     budget--;
 
     const doc = await lookup(base.isbn, base.title!, base.author!);
