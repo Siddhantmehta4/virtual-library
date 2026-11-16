@@ -734,7 +734,7 @@ body.cam-moving .shelf-back { transition-delay: 0.25s; }
 .bay-card .hc-title { font-size: 20px; }
 .bay-card .hc-facts { margin-top: 3px !important; }
 .bay-card { padding: 9px 15px 9px; }
-.label { padding: 9px 15px 10px; max-width: 300px; }
+.label { padding: 10px 15px 10px; max-width: 300px; }
 .hc-line { font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 19px; line-height: 1.2; }
 
 /* ---------- zoom header ---------- */
@@ -1502,5 +1502,5 @@ body.ready .wall-title.top { opacity: 0.9; }
 .shelf-arrow path { fill: none; stroke: rgba(246, 236, 214, 0.85); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .bay.zoomed.fade-r .shelf-arrow { opacity: 0.8; }
 @media (prefers-reduced-motion: reduce) { .bay-row.nudge { animation: none; } }
-/* the plane's arrival card, in the same gold spaced capitals as the section headings */
-.hover-card.gold .hc-line { font-family: "Karla", sans-serif; font-style: normal; font-weight: 500; font-size: 12.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #e6c992; }
+/* object cards (and the plane's arrival card), in the same gold spaced capitals as the section headings */
+.hover-card.label .hc-line, .hover-card.gold .hc-line { font-family: "Karla", sans-serif; font-style: normal; font-weight: 500; font-size: 12.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #e6c992; }
