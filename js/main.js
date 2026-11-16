@@ -161,14 +161,14 @@ function bookEl(b, bay, index) {
 // ---------- hover card ----------
 let cardTimer = 0;
 // Hover cards: a small, plain card just above whatever is pointed at.
-function placeCard(anchor) {
+function placeCard(anchor, lift = 0) {
   const card = $("hoverCard");
   cardTimer = setTimeout(() => {
     const r = anchor.getBoundingClientRect();
     card.classList.add("on");
     const cw = card.offsetWidth, ch = card.offsetHeight;
     const left = clamp(r.left + r.width / 2 - cw / 2, 10, innerWidth - cw - 10);
-    let top = r.top - ch - 10;
+    let top = r.top - ch - 10 - r.height * lift;
     if (top < 10) top = r.bottom + 10;
     card.style.left = `${Math.round(left)}px`;
     card.style.top = `${Math.round(top)}px`;
@@ -192,7 +192,8 @@ function showBookCard(anchor, b) {
     facts ? ["hc-facts", facts] : null,
     meta ? ["hc-meta", meta + (b.rating ? `  ${"★".repeat(b.rating)}` : "")] : null,
   ]);
-  placeCard(anchor);
+  // a hovered book is pulled up and toward you: sit the card clear of where its cover ends up
+  placeCard(anchor, anchor.classList.contains("book") ? 0.11 : 0);
 }
 function showBayCard(anchor, bay) {
   if (state.zoom) return;
