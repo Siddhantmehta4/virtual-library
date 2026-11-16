@@ -250,11 +250,10 @@ function buildRoom() {
     bay.el = box;
     bay.scroller = scroller;
     // soft glass arrows on the ends of a shelf that scrolls: only a hint, not buttons
-    for (const dir of [-1, 1]) {
-      const a = el("span", `shelf-arrow ${dir < 0 ? "prev" : "next"}`, dir < 0 ? "‹" : "›");
-      a.setAttribute("aria-hidden", "true");
-      box.append(a);
-    }
+    const arrow = el("span", "shelf-arrow next");
+    arrow.setAttribute("aria-hidden", "true");
+    arrow.innerHTML = '<svg viewBox="0 0 10 16"><path d="M2 2 L8 8 L2 14"/></svg>';
+    box.append(arrow);
     bay.row = row;
     layer.append(box);
 
@@ -1520,13 +1519,13 @@ function startPlane3D() {
         return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: Math.max(r.width, r.height) / 2 };
       },
       // once it touches down, it says what it's for, for a few seconds
-      onLand: () => {
+      onLand: () => setTimeout(() => {
         const p = state.planeEl;
         if (!p || state.zoom || state.detail || $("recForm").classList.contains("on")) return;
         labelFor(p, "Know a book I’d love? Click to recommend.");
         clearTimeout(state.planeHint);
         state.planeHint = setTimeout(() => { if (!p.matches(":hover")) hideCard(); }, 3000);
-      },
+      }, 750),
       onReady: (api) => {
         const { flyOnce, arriveNow } = api;
         state.plane3d = api;
